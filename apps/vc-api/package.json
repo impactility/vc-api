@@ -53,7 +53,8 @@
     "@credo-ts/askar": "^0.5.3",
     "@credo-ts/core": "^0.5.3",
     "@credo-ts/node": "^0.5.3",
-    "@hyperledger/aries-askar-nodejs": "^0.2.1"
+    "@hyperledger/aries-askar-nodejs": "^0.2.1",
+    "@hyperledger/aries-askar-shared": "^0.2.3"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.1.0",
