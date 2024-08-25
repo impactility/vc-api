@@ -9,6 +9,7 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { KeyPair } from '../key/key-pair.entity';
 import { keyPairFixture } from './fixtures/key-pair.fixture';
 import { DIDService } from '../did/did.service';
+import { KeyService } from 'src/key/key.service';
 
 describe('SeederService', () => {
   let service: SeederService;
@@ -20,6 +21,7 @@ describe('SeederService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         SeederService,
+        KeyService,
         { provide: getRepositoryToken(KeyPair), useValue: mockKeyPairRepository },
         {
           provide: DIDService,

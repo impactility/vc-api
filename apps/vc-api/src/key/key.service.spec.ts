@@ -10,6 +10,7 @@ import { TypeOrmSQLiteModule } from '../in-memory-db';
 import { KeyPair } from './key-pair.entity';
 import { keyType } from './key-types';
 import { KeyService } from './key.service';
+import { AskarConfigModule } from '../askar/askar.module';
 
 describe('KeyService', () => {
   let service: KeyService;
@@ -17,7 +18,7 @@ describe('KeyService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [TypeOrmSQLiteModule(), TypeOrmModule.forFeature([KeyPair])],
+      imports: [TypeOrmSQLiteModule(), TypeOrmModule.forFeature([KeyPair]), AskarConfigModule],
       providers: [KeyService]
     }).compile();
 

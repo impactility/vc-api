@@ -21,6 +21,7 @@ import { KeyService } from './key.service';
 import { BadRequestErrorResponseDto } from '../dtos/bad-request-error-response.dto';
 import { NotFoundErrorResponseDto } from '../dtos/not-found-error-response.dto';
 import { InternalServerErrorResponseDto } from '../dtos/internal-server-error-response.dto';
+import { Jwk } from '@hyperledger/aries-askar-shared';
 
 @ApiTags('key')
 @Controller('key')
@@ -43,9 +44,9 @@ export class KeyController {
   }
 
   @Get('/:keyId')
-  @ApiOkResponse({ type: KeyPairDto })
+  @ApiOkResponse({ type: Jwk })
   @ApiNotFoundResponse({ type: NotFoundErrorResponseDto })
-  async export(@Param('keyId') keyId: string): Promise<KeyPairDto> {
+  async export(@Param('keyId') keyId: string): Promise<Jwk> {
     const keyDescription = new KeyDescriptionDto();
     keyDescription.keyId = keyId;
     try {

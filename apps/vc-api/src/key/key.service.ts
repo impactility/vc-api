@@ -5,20 +5,16 @@
 
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { IGenerateKey, IGenerateKeyOptions, IKeyDescription } from '@energyweb/w3c-ccg-webkms';
-import {
-  generateKeyPair,
-  exportJWK,
-  GenerateKeyPairResult,
-  JWK,
-  calculateJwkThumbprint,
-  importJWK
-} from 'jose';
+import { KeyType, TypedArrayEncoder, WalletCreateKeyOptions, Buffer } from '@credo-ts/core';
+import { Jwk, Key, KeyEntryObject } from "@hyperledger/aries-askar-shared";
+import { generateKeyPair, exportJWK, GenerateKeyPairResult, JWK, importJWK } from 'jose';
 import { InjectRepository } from '@nestjs/typeorm';
 import { KeyPair } from './key-pair.entity';
 import { Repository } from 'typeorm';
 import { keyType } from './key-types';
 import { KeyPairDto } from './dtos/key-pair.dto';
 import { KeyDescriptionDto } from './dtos/key-description.dto';
+import { AskarService } from '../askar/askar.config';
 
 // picked 'EdDSA' as 'alg' based on:
 // - https://stackoverflow.com/a/66894047
@@ -31,6 +27,7 @@ const ED25519_ALG = 'EdDSA';
 @Injectable()
 export class KeyService implements IGenerateKey {
   constructor(
+    private readonly askarService: AskarService,
     @InjectRepository(KeyPair)
     private keyRepository: Repository<KeyPair>
   ) {}
@@ -85,32 +82,66 @@ export class KeyService implements IGenerateKey {
     if (key.privateKey.crv !== 'Ed25519' || key.publicKey.crv !== 'Ed25519') {
       throw new BadRequestException('Only Ed25519 keys are supported');
     }
+
     const privateKey = await importJWK(key.privateKey, ED25519_ALG);
     const publicKey = await importJWK(key.publicKey, ED25519_ALG);
     if ('type' in privateKey && 'type' in publicKey) {
+      const publicKeyBase58 = TypedArrayEncoder.toBase58(
+        TypedArrayEncoder.fromBase64(
+          key.publicKey.x
+        )
+      );
+      const keyExists = await this.fetchKey(publicKeyBase58);
+
+      // if key already exists in the wallet
+      // returns keyId i.e. publicKeyBase58
+      if(keyExists != null) {
+        return {
+          keyId: publicKeyBase58,
+        };
+      }
+
       return await this.saveNewKey({ privateKey, publicKey });
     }
     throw new Error(`importJWK produced incorrect type. public key: ${publicKey}`);
   }
 
-  public async exportKey(keyDescription: KeyDescriptionDto): Promise<KeyPairDto> {
-    const keyPair = await this.keyRepository.findOneBy({ publicKeyThumbprint: keyDescription.keyId });
-    return keyPair;
+  public async exportKey(keyDescription: KeyDescriptionDto): Promise<Jwk> {
+    const key = await this.fetchKey(keyDescription.keyId);
+    return key?.key?.jwkPublic;
   }
 
   private async saveNewKey(keyGenResult: GenerateKeyPairResult): Promise<IKeyDescription> {
+
     const publicKeyJWK = await exportJWK(keyGenResult.publicKey);
-    publicKeyJWK.kid = await calculateJwkThumbprint(publicKeyJWK, 'sha256');
     const privateKeyJWK = await exportJWK(keyGenResult.privateKey);
-    const keyEntity = this.keyRepository.create({
-      publicKey: publicKeyJWK,
-      privateKey: privateKeyJWK,
-      publicKeyThumbprint: publicKeyJWK.kid
-    });
-    await this.keyRepository.save(keyEntity);
-    return {
-      keyId: publicKeyJWK.kid
+
+    const privateAskarJwk = Jwk.fromJson(JSON.parse(JSON.stringify(privateKeyJWK)));
+    const key = Key.fromJwk({ jwk: privateAskarJwk });
+
+    if (key.jwkPublic.x !== publicKeyJWK.x) {
+      throw new Error(`key pair mismatch. public key: ${publicKeyJWK.x}`);
+    }
+
+    const walletKeyCreate: WalletCreateKeyOptions = {
+      keyType: KeyType.Ed25519,
+      privateKey: Buffer.from(key.secretBytes),
     };
+  
+    // create key in the Askar Wallet
+    const insertedKey = await this.askarService.getAskarAgent().wallet.createKey(walletKeyCreate);
+
+     if (insertedKey) {
+      return {
+        keyId: insertedKey?.publicKeyBase58,
+      };  
+     }
+
+     throw new Error(`key creation failed`);
+  }
+
+  public async fetchKey(publicKeyBase58: string): Promise<KeyEntryObject> {
+    return (await this.askarService.getAskarWallet().store.openSession()).fetchKey({ name: publicKeyBase58 });
   }
 
   private async generateSecp256k1(): Promise<IKeyDescription> {
