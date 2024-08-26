@@ -30,6 +30,10 @@ For more information about this, see the [context documentation](./docs/contexts
 
 Install using the [rush commands](../../README.md#installation) described in the root README.
 
+## Set up the environment
+Create a `.env` file in the root directory.
+Refer to the sample.env file to get started with the environment variable configuration.
+
 ## Running the app
 
 Alternatively to `npm`, `pnpm` can be used for the commands below.
