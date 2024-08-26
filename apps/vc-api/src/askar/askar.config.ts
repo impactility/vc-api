@@ -7,10 +7,10 @@ import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 @Injectable()
 export class AskarService implements OnModuleInit, OnModuleDestroy{
   private readonly walletConfig: WalletConfig = {
-    id: 'vc-api-wallet',
-    key: 'vc-api-wallet-0001',
+    id: process.env['ASKAR_WALLET_ID'],
+    key: process.env['ASKAR_WALLET_KEY'],
     storage: {
-      type: 'sqlite',
+      type: process.env['ASKAR_WALLET_DB_TYPE'],
       // config: {
       //   inMemory: true,
       // },
@@ -23,7 +23,7 @@ export class AskarService implements OnModuleInit, OnModuleDestroy{
   constructor() {
     // Initialize agent and wallet synchronously
     const config: InitConfig = {
-      label: 'vc-api-agent',
+      label: process.env['ASKAR_LABEL'],
       walletConfig: this.walletConfig,
     };
 
