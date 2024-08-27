@@ -15,21 +15,26 @@ export class DIDKeyFactory {
    * @returns The default DID Document of the DID. E.g. https://github.com/decentralized-identity/ethr-did-resolver#did-document
    */
   public static async generate(agent: Agent<{askar: AskarModule;}>, ed25119Key: DifJsonWebKey): Promise<DIDDocument> {
-    const ed25519Jwk = new Ed25519Jwk({ x: ed25119Key.x! });
-    const credoKey: Key = new Key(ed25519Jwk.publicKey, KeyType.Ed25519);
-
-    const didCreateOptions: KeyDidCreateOptions = {
-      method: 'key',
-      options: {
-        key: credoKey,
-      },
-    };
-
-    const did = await agent.dids.create(didCreateOptions);
-
-    return {
-      id: did.didState.did!,
-      verificationMethod: did.didState.didDocument?.verificationMethod,
-    };
+    try {
+      const ed25519Jwk = new Ed25519Jwk({ x: ed25119Key.x! });
+      const credoKey: Key = new Key(ed25519Jwk.publicKey, KeyType.Ed25519);
+  
+      const didCreateOptions: KeyDidCreateOptions = {
+        method: 'key',
+        options: {
+          key: credoKey,
+        },
+      };
+  
+      const did = await agent.dids.create(didCreateOptions);
+  
+      if (did.didState.didDocument) {
+        return did.didState.didDocument;
+      } else {
+        throw new Error('Error generating did');
+      }
+    } catch (err) {
+      throw err;
+    }
   }
 }

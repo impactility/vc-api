@@ -12,13 +12,13 @@ import { Repository } from 'typeorm';
 import { KeyService } from '../key/key.service';
 import { DIDDocumentEntity } from './entities/did-document.entity';
 import { VerificationMethodEntity } from './entities/verification-method.entity';
-import { AskarService } from '../askar/askar.config';
+import { CredoService } from '../credo/credo.service';
 
 @Injectable()
 export class DIDService {
   constructor(
     private keyService: KeyService,
-    private readonly askarService: AskarService,
+    private readonly credoService: CredoService,
     @InjectRepository(DIDDocumentEntity)
     private didRepository: Repository<DIDDocumentEntity>,
     @InjectRepository(VerificationMethodEntity)
@@ -56,12 +56,12 @@ export class DIDService {
 
     // Need to set kty because it is possibly undefined in 'jose' JWK type
     const difKey = { ...key?.key?.jwkPublic, kty: 'OKP' };
-    const didDoc = await DIDKeyFactory.generate(this.askarService.getAskarAgent(), difKey);
+    const didDoc = await DIDKeyFactory.generate(this.credoService.agent, difKey);
     return didDoc;
   }
 
   public async getDID(did: string): Promise<DIDDocument> {
-    const didDoc = this.askarService.getAskarAgent().dids.resolveDidDocument(did);
+    const didDoc = this.credoService.agent.dids.resolveDidDocument(did);
     return didDoc;
   }
 
