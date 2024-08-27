@@ -11,7 +11,7 @@ import { KeyService } from '../key/key.service';
 import { DIDService } from './did.service';
 import { DIDDocumentEntity } from './entities/did-document.entity';
 import { VerificationMethodEntity } from './entities/verification-method.entity';
-import { AskarConfigModule } from '../askar/askar.module';
+import { CredoModule } from '../credo/credo.module';
 
 describe('DIDService', () => {
   let service: DIDService;
@@ -21,7 +21,7 @@ describe('DIDService', () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [
         KeyModule,
-        AskarConfigModule,
+        CredoModule,
         TypeOrmSQLiteModule(),
         TypeOrmModule.forFeature([DIDDocumentEntity, VerificationMethodEntity])
       ],

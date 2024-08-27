@@ -14,7 +14,7 @@ import { Repository } from 'typeorm';
 import { keyType } from './key-types';
 import { KeyPairDto } from './dtos/key-pair.dto';
 import { KeyDescriptionDto } from './dtos/key-description.dto';
-import { AskarService } from '../askar/askar.config';
+import { CredoService } from '../credo/credo.service';
 
 // picked 'EdDSA' as 'alg' based on:
 // - https://stackoverflow.com/a/66894047
@@ -27,7 +27,7 @@ const ED25519_ALG = 'EdDSA';
 @Injectable()
 export class KeyService implements IGenerateKey {
   constructor(
-    private readonly askarService: AskarService,
+    private readonly credoService: CredoService,
     @InjectRepository(KeyPair)
     private keyRepository: Repository<KeyPair>
   ) {}
@@ -106,9 +106,21 @@ export class KeyService implements IGenerateKey {
     throw new Error(`importJWK produced incorrect type. public key: ${publicKey}`);
   }
 
-  public async exportKey(keyDescription: KeyDescriptionDto): Promise<Jwk> {
+  public async exportKey(keyDescription: KeyDescriptionDto): Promise<KeyPairDto> {
     const key = await this.fetchKey(keyDescription.keyId);
-    return key?.key?.jwkPublic;
+    if (key) {
+      return {
+        publicKey: {
+          ...key.key.jwkPublic,
+          kid: keyDescription.keyId,
+        },
+        privateKey:
+        {
+          ...key.key.jwkSecret
+        }
+      }
+    }
+    return null;
   }
 
   private async saveNewKey(keyGenResult: GenerateKeyPairResult): Promise<IKeyDescription> {
@@ -129,7 +141,7 @@ export class KeyService implements IGenerateKey {
     };
   
     // create key in the Askar Wallet
-    const insertedKey = await this.askarService.getAskarAgent().wallet.createKey(walletKeyCreate);
+    const insertedKey = await this.credoService.agent.wallet.createKey(walletKeyCreate);
 
      if (insertedKey) {
       return {
@@ -140,8 +152,11 @@ export class KeyService implements IGenerateKey {
      throw new Error(`key creation failed`);
   }
 
+  
   public async fetchKey(publicKeyBase58: string): Promise<KeyEntryObject> {
-    return (await this.askarService.getAskarWallet().store.openSession()).fetchKey({ name: publicKeyBase58 });
+    return (await this.credoService.wallet.withSession(async (session) => 
+      (await session.fetchKey({ name: publicKeyBase58 }))
+    ));
   }
 
   private async generateSecp256k1(): Promise<IKeyDescription> {

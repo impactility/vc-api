@@ -5,19 +5,16 @@ import { ariesAskar } from "@hyperledger/aries-askar-nodejs";
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 
 @Injectable()
-export class AskarService implements OnModuleInit, OnModuleDestroy{
+export class CredoService implements OnModuleInit, OnModuleDestroy{
   private readonly walletConfig: WalletConfig = {
     id: process.env['ASKAR_WALLET_ID'],
     key: process.env['ASKAR_WALLET_KEY'],
     storage: {
       type: process.env['ASKAR_WALLET_DB_TYPE'],
-      // config: {
-      //   inMemory: true,
-      // },
     },
   };
-  private readonly agent: Agent<{ askar: AskarModule; }>;
-  private readonly wallet: AskarWallet;
+  private readonly askarAgent: Agent<{ askar: AskarModule; }>;
+  private readonly askarWallet: AskarWallet;
   private initialized: boolean = false;
 
   constructor() {
@@ -28,7 +25,7 @@ export class AskarService implements OnModuleInit, OnModuleDestroy{
     };
 
     // Create the agent
-    this.agent = new Agent({
+    this.askarAgent = new Agent({
       config,
       dependencies: agentDependencies,
       modules: {
@@ -39,7 +36,7 @@ export class AskarService implements OnModuleInit, OnModuleDestroy{
     });
 
     // Create the wallet
-    this.wallet = new AskarWallet(
+    this.askarWallet = new AskarWallet(
       new ConsoleLogger(),
       new agentDependencies.FileSystem(),
       new SigningProviderRegistry([]),
@@ -53,27 +50,27 @@ export class AskarService implements OnModuleInit, OnModuleDestroy{
 
   // initializes the askar agent and wallet for operations
   private async initialize() {
-    if (!this.agent.isInitialized) {
-      await this.agent.initialize();
+    if (!this.askarAgent.isInitialized) {
+      await this.askarAgent.initialize();
     }
-    await this.wallet.open(this.walletConfig);
+    await this.askarWallet.open(this.walletConfig);
     this.initialized = true;
   }
 
   // Accessor for the agent
-  public getAskarAgent(): Agent<{ askar: AskarModule }> {
+  public get agent(): Agent<{ askar: AskarModule }> {
     if (!this.initialized) {
-      throw new Error("AskarConfigService is not initialized yet.");
+      throw new Error("Credo Agent is not initialized yet.");
     }
-    return this.agent;
+    return this.askarAgent;
   }
 
   // Accessor for the wallet
-  public getAskarWallet(): AskarWallet {
+  public get wallet(): AskarWallet {
     if (!this.initialized) {
-      throw new Error("AskarConfigService is not initialized yet.");
+      throw new Error("Credo wallet is not initialized yet.");
     }
-    return this.wallet;
+    return this.askarWallet;
   }
 
   async onModuleDestroy() {
