@@ -12,6 +12,6 @@ import { ApiProperty } from '@nestjs/swagger';
  */
 export class KeyDescriptionDto implements IKeyDescription {
   @IsString()
-  @ApiProperty({ description: 'id of key (for example, public key base64url)' })
+  @ApiProperty({ description: 'id of key (for example, public key base58 string)' })
   public keyId: string;
 }
