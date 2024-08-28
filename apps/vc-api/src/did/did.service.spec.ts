@@ -12,12 +12,16 @@ import { DIDService } from './did.service';
 import { DIDDocumentEntity } from './entities/did-document.entity';
 import { VerificationMethodEntity } from './entities/verification-method.entity';
 import { CredoModule } from '../credo/credo.module';
+import { CredoService } from '../credo/credo.service';
+import { KeyPairDto } from '../key/dtos/key-pair.dto';
+import { credoTestSuite, ICredoTestSuite } from '../credo/credo.test.suite';
 
 describe('DIDService', () => {
   let service: DIDService;
   let keyService: KeyService;
-
+  let mockCredoService: ICredoTestSuite;
   beforeEach(async () => {
+    mockCredoService = await credoTestSuite();
     const module: TestingModule = await Test.createTestingModule({
       imports: [
         KeyModule,
@@ -26,10 +30,19 @@ describe('DIDService', () => {
         TypeOrmModule.forFeature([DIDDocumentEntity, VerificationMethodEntity])
       ],
       providers: [DIDService]
-    }).compile();
+    })
+    .overrideProvider(CredoService)
+    .useValue(mockCredoService)
+    .compile();
 
     keyService = module.get<KeyService>(KeyService);
     service = module.get<DIDService>(DIDService);
+  });
+
+  // close the agent and remove test wallet
+  afterAll(async () => {
+    await mockCredoService.agent.shutdown();
+    await mockCredoService.agent.wallet.delete();
   });
 
   it('should be defined', () => {
@@ -52,17 +65,22 @@ describe('DIDService', () => {
 
   describe('register', () => {
     it('should register a did:key DID from an existing key pair', async () => {
-      const existingKeyDescription = {
-        keyId: 'xtYQnNso7KLvSySJ3_MlaTmc2AEjLvlBb6o7u8OQ6hQ'
+      const keyPair: KeyPairDto = {
+        "privateKey": {
+          "crv": "Ed25519",
+          "d": "_jFgdqwaqQD9lt7rXnnFy7dTXnf07TiaSSIl7pMPOII",
+          "x": "Uo2XCpA1tvl3jK9zsYy947H6gfMt_3UjbIg9dLwvbvs",
+          "kty": "OKP"
+        },
+        "publicKey": {
+          "crv": "Ed25519",
+          "x": "Uo2XCpA1tvl3jK9zsYy947H6gfMt_3UjbIg9dLwvbvs",
+          "kty": "OKP",
+          "kid": "jNlE5CHnmtcvvNmNWaJqBDYg0dU9bey7m9SXsw1r-2A"
+        }
       };
-      const key = {
-        crv: 'Ed25519',
-        x: 'ahpPa82qzgSJUGP53pbdbq3BrtLLehQEJ4ZVINGEhAg',
-        kty: 'OKP',
-        kid: 'xtYQnNso7KLvSySJ3_MlaTmc2AEjLvlBb6o7u8OQ6hQ'
-      };
-      jest.spyOn(keyService, 'getPublicKeyFromKeyId').mockImplementation(() => Promise.resolve(key));
-      const did = await service.registerKeyDID(existingKeyDescription.keyId);
+      const existingKey = await keyService.importKey(keyPair);
+      const did = await service.registerKeyDID(existingKey.keyId);
       expect(did.id).toBeDefined();
       expect(did.verificationMethod?.length).toEqual(1);
     });

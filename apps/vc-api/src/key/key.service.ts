@@ -5,7 +5,7 @@
 
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { IGenerateKey, IGenerateKeyOptions, IKeyDescription } from '@energyweb/w3c-ccg-webkms';
-import { KeyType, TypedArrayEncoder, WalletCreateKeyOptions, Buffer } from '@credo-ts/core';
+import { KeyType, WalletCreateKeyOptions, Buffer } from '@credo-ts/core';
 import { Jwk, Key, KeyEntryObject } from "@hyperledger/aries-askar-shared";
 import { generateKeyPair, exportJWK, GenerateKeyPairResult, JWK, importJWK } from 'jose';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -15,6 +15,7 @@ import { keyType } from './key-types';
 import { KeyPairDto } from './dtos/key-pair.dto';
 import { KeyDescriptionDto } from './dtos/key-description.dto';
 import { CredoService } from '../credo/credo.service';
+import { Base64ToBase58 } from '../utils/crypto.utils';
 
 // picked 'EdDSA' as 'alg' based on:
 // - https://stackoverflow.com/a/66894047
@@ -54,8 +55,10 @@ export class KeyService implements IGenerateKey {
    *
    */
   public async getPublicKeyFromKeyId(keyId: string): Promise<JWK> {
-    const keyPair = await this.keyRepository.findOneBy({ publicKeyThumbprint: keyId });
-    return keyPair?.publicKey;
+    const keyPair = await this.fetchKey(keyId)
+    return keyPair ? {
+      ...keyPair?.key.jwkPublic
+    } : undefined;
   }
 
   /**
@@ -67,8 +70,10 @@ export class KeyService implements IGenerateKey {
    * @returns private JWK of the key pair
    */
   public async getPrivateKeyFromKeyId(keyId: string): Promise<JWK> {
-    const keyPair = await this.keyRepository.findOneBy({ publicKeyThumbprint: keyId });
-    return keyPair?.privateKey;
+    const keyPair = await this.fetchKey(keyId)
+    return keyPair ? {
+      ...keyPair?.key.jwkSecret
+    } : undefined;
   }
 
   /**
@@ -86,11 +91,7 @@ export class KeyService implements IGenerateKey {
     const privateKey = await importJWK(key.privateKey, ED25519_ALG);
     const publicKey = await importJWK(key.publicKey, ED25519_ALG);
     if ('type' in privateKey && 'type' in publicKey) {
-      const publicKeyBase58 = TypedArrayEncoder.toBase58(
-        TypedArrayEncoder.fromBase64(
-          key.publicKey.x
-        )
-      );
+      const publicKeyBase58 = Base64ToBase58(key.publicKey.x);
       const keyExists = await this.fetchKey(publicKeyBase58);
 
       // if key already exists in the wallet
@@ -146,7 +147,7 @@ export class KeyService implements IGenerateKey {
      if (insertedKey) {
       return {
         keyId: insertedKey?.publicKeyBase58,
-      };  
+      };
      }
 
      throw new Error(`key creation failed`);
