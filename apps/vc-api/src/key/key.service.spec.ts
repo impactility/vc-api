@@ -25,17 +25,12 @@ describe('KeyService', () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [TypeOrmSQLiteModule(), TypeOrmModule.forFeature([KeyPair]), CredoModule],
       providers: [KeyService]
-    }).overrideProvider(CredoService)
+    })
+    .overrideProvider(CredoService)
     .useValue(mockCredoService)
     .compile();
 
     service = module.get<KeyService>(KeyService);
-  });
-
-  // close the agent and remove test wallet
-  afterAll(async () => {
-    await mockCredoService.agent.shutdown();
-    await mockCredoService.agent.wallet.delete();
   });
 
   it('should be defined', () => {

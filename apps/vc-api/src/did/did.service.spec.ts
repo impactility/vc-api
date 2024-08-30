@@ -39,12 +39,6 @@ describe('DIDService', () => {
     service = module.get<DIDService>(DIDService);
   });
 
-  // close the agent and remove test wallet
-  afterAll(async () => {
-    await mockCredoService.agent.shutdown();
-    await mockCredoService.agent.wallet.delete();
-  });
-
   it('should be defined', () => {
     expect(service).toBeDefined();
   });

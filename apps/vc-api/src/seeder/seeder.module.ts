@@ -8,7 +8,7 @@ import { SeederService } from './seeder.service';
 import { KeyPair } from '../key/key-pair.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DidModule } from '../did/did.module';
-import { KeyModule } from 'src/key/key.module';
+import { KeyModule } from '../key/key.module';
 
 @Module({
   imports: [TypeOrmModule.forFeature([KeyPair]), DidModule, KeyModule],
