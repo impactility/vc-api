@@ -5,6 +5,7 @@
 
 import { Test, TestingModule } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { DIDKeyFactory } from '@energyweb/ssi-did';
 import { TypeOrmSQLiteModule } from '../in-memory-db';
 import { KeyModule } from '../key/key.module';
 import { KeyService } from '../key/key.service';
@@ -12,16 +13,15 @@ import { DIDService } from './did.service';
 import { DIDDocumentEntity } from './entities/did-document.entity';
 import { VerificationMethodEntity } from './entities/verification-method.entity';
 import { CredoModule } from '../credo/credo.module';
+import { didDocument, generatedKey, keyEntryObject, keyPair } from '../../test/did/did.service.spec.data';
 import { CredoService } from '../credo/credo.service';
-import { KeyPairDto } from '../key/dtos/key-pair.dto';
-import { credoTestSuite, ICredoTestSuite } from '../credo/credo.test.suite';
+import { mockCredoService } from '../credo/__mocks__/credo.service';
 
 describe('DIDService', () => {
   let service: DIDService;
   let keyService: KeyService;
-  let mockCredoService: ICredoTestSuite;
+
   beforeEach(async () => {
-    mockCredoService = await credoTestSuite();
     const module: TestingModule = await Test.createTestingModule({
       imports: [
         KeyModule,
@@ -29,14 +29,21 @@ describe('DIDService', () => {
         TypeOrmSQLiteModule(),
         TypeOrmModule.forFeature([DIDDocumentEntity, VerificationMethodEntity])
       ],
-      providers: [DIDService]
-    })
-    .overrideProvider(CredoService)
-    .useValue(mockCredoService)
-    .compile();
+      providers: [
+        DIDService,
+        {
+          provide: CredoService,
+          useValue: mockCredoService,
+        },
+      ]
+    }).compile();
 
     keyService = module.get<KeyService>(KeyService);
     service = module.get<DIDService>(DIDService);
+
+    jest.spyOn(keyService, 'generateKey').mockResolvedValue(generatedKey);
+    jest.spyOn(keyService, 'fetchKey').mockResolvedValue(keyEntryObject);
+    jest.spyOn(DIDKeyFactory, 'generate').mockResolvedValue(didDocument);
   });
 
   it('should be defined', () => {
@@ -54,29 +61,17 @@ describe('DIDService', () => {
       const did = await service.generateKeyDID();
       expect(did.id).toBeDefined();
       expect(did.verificationMethod?.length).toEqual(1);
+      expect(DIDKeyFactory.generate).toHaveBeenCalled();
     });
   });
 
   describe('register', () => {
     it('should register a did:key DID from an existing key pair', async () => {
-      const keyPair: KeyPairDto = {
-        "privateKey": {
-          "crv": "Ed25519",
-          "d": "_jFgdqwaqQD9lt7rXnnFy7dTXnf07TiaSSIl7pMPOII",
-          "x": "Uo2XCpA1tvl3jK9zsYy947H6gfMt_3UjbIg9dLwvbvs",
-          "kty": "OKP"
-        },
-        "publicKey": {
-          "crv": "Ed25519",
-          "x": "Uo2XCpA1tvl3jK9zsYy947H6gfMt_3UjbIg9dLwvbvs",
-          "kty": "OKP",
-          "kid": "jNlE5CHnmtcvvNmNWaJqBDYg0dU9bey7m9SXsw1r-2A"
-        }
-      };
       const existingKey = await keyService.importKey(keyPair);
       const did = await service.registerKeyDID(existingKey.keyId);
       expect(did.id).toBeDefined();
       expect(did.verificationMethod?.length).toEqual(1);
+      expect(DIDKeyFactory.generate).toHaveBeenCalled();
     });
   });
 });

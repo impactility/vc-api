@@ -129,7 +129,13 @@ export class KeyService implements IGenerateKey {
     const publicKeyJWK = await exportJWK(keyGenResult.publicKey);
     const privateKeyJWK = await exportJWK(keyGenResult.privateKey);
 
-    const privateAskarJwk = Jwk.fromJson(JSON.parse(JSON.stringify(privateKeyJWK)));
+    // Need to check that the properties required by Askar JWK are there
+    if (!privateKeyJWK.crv || !privateKeyJWK.x) {
+      throw new Error("Missing required properties from private JWK");
+    }
+    const jwkProps = { ...privateKeyJWK, kty: 'OKP', crv: privateKeyJWK.crv, x: privateKeyJWK.x };
+    const privateAskarJwk = Jwk.fromJson(jwkProps);
+    
     const key = Key.fromJwk({ jwk: privateAskarJwk });
 
     if (key.jwkPublic.x !== publicKeyJWK.x) {
@@ -143,7 +149,7 @@ export class KeyService implements IGenerateKey {
   
     // create key in the Askar Wallet
     const insertedKey = await this.credoService.agent.wallet.createKey(walletKeyCreate);
-
+    
      if (insertedKey) {
       return {
         keyId: insertedKey?.publicKeyBase58,

@@ -8,27 +8,29 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { JWK } from 'jose';
 import { TypeOrmSQLiteModule } from '../in-memory-db';
 import { KeyPair } from './key-pair.entity';
-import { keyType } from './key-types';
 import { KeyService } from './key.service';
 import { CredoModule } from '../credo/credo.module';
-import { credoTestSuite, ICredoTestSuite } from '../credo/credo.test.suite';
 import { CredoService } from '../credo/credo.service';
+import { mockCredoService } from '../credo/__mocks__/credo.service';
 import { Base64ToBase58 } from '../utils/crypto.utils';
+import { keyEntryObject, createdKey } from '../../test/key/key.service.spec.data';
+import { keyType } from './key-types';
 
 describe('KeyService', () => {
   let service: KeyService;
   let newPublicKey: JWK;
-  let mockCredoService: ICredoTestSuite;
-  
+
   beforeEach(async () => {
-    mockCredoService = await credoTestSuite();
     const module: TestingModule = await Test.createTestingModule({
       imports: [TypeOrmSQLiteModule(), TypeOrmModule.forFeature([KeyPair]), CredoModule],
-      providers: [KeyService]
-    })
-    .overrideProvider(CredoService)
-    .useValue(mockCredoService)
-    .compile();
+      providers: [
+        KeyService,
+        { 
+          provide: CredoService,
+          useValue: mockCredoService,
+        }
+      ]
+    }).compile();
 
     service = module.get<KeyService>(KeyService);
   });
@@ -38,12 +40,23 @@ describe('KeyService', () => {
   });
 
   it('should return undefined if asked for privateKey that it does not have', async () => {
+    jest.spyOn(mockCredoService.wallet, 'withSession').mockImplementation(async (callback) => {
+      return await callback({
+        fetchKey: jest.fn().mockResolvedValue(null),
+      });
+    });
     const result = await service.getPublicKeyFromKeyId('thumbprint-of-not-available-key');
     expect(result).toBeUndefined();
   });
 
   describe('Ed25519', () => {
     beforeEach(async () => {
+      jest.spyOn(mockCredoService.agent.wallet, 'createKey').mockResolvedValue(createdKey);
+      jest.spyOn(mockCredoService.wallet, 'withSession').mockImplementation(async (callback) => {
+        return await callback({
+          fetchKey: jest.fn().mockResolvedValue(keyEntryObject),
+        });
+      });
       const keyDescription = await service.generateKey({ type: keyType.ed25519 });
       newPublicKey = await service.getPublicKeyFromKeyId(keyDescription.keyId);
     });
