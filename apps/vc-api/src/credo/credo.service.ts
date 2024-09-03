@@ -15,7 +15,7 @@ export class CredoService implements OnModuleInit, OnModuleDestroy{
   };
   private readonly askarAgent: Agent<{ askar: AskarModule; }>;
   private readonly askarWallet: AskarWallet;
-  private initialized: boolean = false;
+  private initialized = false;
 
   constructor() {
     // Initialize agent and wallet synchronously
