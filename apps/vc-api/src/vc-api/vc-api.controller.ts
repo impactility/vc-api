@@ -34,15 +34,16 @@ import {
 import { Response } from 'express';
 import { IPresentationDefinition } from '@sphereon/pex';
 import { CredentialsService } from './credentials/credentials.service';
-import { IssueCredentialDto } from './credentials/dtos/issue-credential.dto';
+import { IssueCredentialDto } from './credentials/dtos-credo/issue-credential.dto';
 import { VerifiableCredentialDto } from './credentials/dtos/verifiable-credential.dto';
+import { VerifiableCredentialDto as CredoVcDto } from './credentials/dtos-credo/verifiable-credential.dto';
 import { AuthenticateDto } from './credentials/dtos/authenticate.dto';
 import { VerifiablePresentationDto } from './credentials/dtos/verifiable-presentation.dto';
 import { ExchangeService } from './exchanges/exchange.service';
 import { ExchangeResponseDto } from './exchanges/dtos/exchange-response.dto';
 import { ExchangeDefinitionDto } from './exchanges/dtos/exchange-definition.dto';
 import { ProvePresentationDto } from './credentials/dtos/prove-presentation.dto';
-import { VerifyCredentialDto } from './credentials/dtos/verify-credential.dto';
+import { VerifyCredentialDto } from './credentials/dtos-credo/verify-credential.dto';
 import { TransactionDto } from './exchanges/dtos/transaction.dto';
 import { SubmissionReviewDto } from './exchanges/dtos/submission-review.dto';
 import { PresentationDto } from './credentials/dtos/presentation.dto';
@@ -52,6 +53,7 @@ import { BadRequestErrorResponseDto } from '../dtos/bad-request-error-response.d
 import { ConflictErrorResponseDto } from '../dtos/conflict-error-response.dto';
 import { NotFoundErrorResponseDto } from '../dtos/not-found-error-response.dto';
 import { InternalServerErrorResponseDto } from '../dtos/internal-server-error-response.dto';
+import { W3cVerifyCredentialResult } from '@credo-ts/core';
 
 /**
  * VcApi API conforms to W3C vc-api
@@ -77,8 +79,8 @@ export class VcApiController {
       'Conforms to https://w3c-ccg.github.io/vc-api/issuer.html'
   })
   @ApiBody({ type: IssueCredentialDto })
-  @ApiCreatedResponse({ type: VerifiableCredentialDto })
-  async issueCredential(@Body() issueDto: IssueCredentialDto): Promise<VerifiableCredentialDto> {
+  @ApiCreatedResponse({ type: CredoVcDto })
+  async issueCredential(@Body() issueDto: IssueCredentialDto): Promise<CredoVcDto> {
     return await this.vcApiService.issueCredential(issueDto);
   }
 
@@ -103,13 +105,13 @@ export class VcApiController {
   async verifyCredential(
     @Body()
     verifyCredentialDto: VerifyCredentialDto
-  ): Promise<VerificationResultDto> {
+  ): Promise<W3cVerifyCredentialResult> {
     const verificationResult = await this.vcApiService.verifyCredential(
       verifyCredentialDto.verifiableCredential,
       verifyCredentialDto.options
     );
 
-    if (verificationResult.errors.length > 0) {
+    if (verificationResult.error) {
       throw new BadRequestException(verificationResult);
     }
 

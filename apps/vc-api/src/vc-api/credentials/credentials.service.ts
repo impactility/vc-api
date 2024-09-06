@@ -15,11 +15,11 @@ import { JWK } from 'jose';
 import { DIDService } from '../../did/did.service';
 import { KeyService } from '../../key/key.service';
 import { IssueOptionsDto } from './dtos/issue-options.dto';
-import { IssueCredentialDto } from './dtos/issue-credential.dto';
+import { IssueCredentialDto } from './dtos-credo/issue-credential.dto';
 import { VerifiableCredentialDto } from './dtos/verifiable-credential.dto';
 import { VerifiablePresentationDto } from './dtos/verifiable-presentation.dto';
 import { VerifyOptionsDto } from './dtos/verify-options.dto';
-import { VerificationResultDto } from './dtos/verification-result.dto';
+import { VerificationResultDto } from './dtos-credo/verification-result.dto';
 import { AuthenticateDto } from './dtos/authenticate.dto';
 import { ProvePresentationDto } from './dtos/prove-presentation.dto';
 import { CredentialVerifier } from './types/credential-verifier';
@@ -28,6 +28,19 @@ import { IPresentationDefinition, IVerifiableCredential, PEX, ProofPurpose, Stat
 import { VerificationMethod } from 'did-resolver';
 import { ProvePresentationOptionsDto } from './dtos/prove-presentation-options.dto';
 import { didKitExecutor } from './utils/did-kit-executor.function';
+import { CredoService } from '../../credo/credo.service';
+import {
+  ClaimFormat,
+  JsonTransformer,
+  W3cCredential,
+  W3cJsonLdSignCredentialOptions,
+  W3cJsonLdVerifiableCredential,
+  W3cJsonLdVerifyCredentialOptions,
+  W3cVerifiableCredential,
+  W3cVerifyCredentialOptions,
+  W3cVerifyCredentialResult
+} from '@credo-ts/core';
+import { VerifiableCredentialDto as CredoVcDto } from './dtos-credo/verifiable-credential.dto';
 
 /**
  * Credential issuance options that Spruce accepts
@@ -53,42 +66,43 @@ interface ISpruceVerifyOptions {
  * This encapsulates the use of Spruce DIDKit
  */
 @Injectable()
-export class CredentialsService implements CredentialVerifier {
-  constructor(private didService: DIDService, private keyService: KeyService) {}
+export class CredentialsService {
+  constructor(
+    private didService: DIDService,
+    private keyService: KeyService,
+    private credoService: CredoService
+  ) {}
 
-  async issueCredential(issueDto: IssueCredentialDto): Promise<VerifiableCredentialDto> {
+  async issueCredential(issueDto: IssueCredentialDto): Promise<CredoVcDto> {
     const verificationMethod = await this.getVerificationMethodForDid(
       typeof issueDto.credential.issuer === 'string'
         ? issueDto.credential.issuer
         : issueDto.credential.issuer.id
     );
-    const key = await this.getKeyForVerificationMethod(verificationMethod.id);
-    const proofOptions = this.mapVcApiIssueOptionsToSpruceIssueOptions(
-      issueDto.options || ({} as IssueOptionsDto),
-      verificationMethod.id
-    );
-
-    return didKitExecutor<VerifiableCredentialDto>(
-      () =>
-        issueCredential(
-          JSON.stringify(issueDto.credential),
-          JSON.stringify(proofOptions),
-          JSON.stringify(key)
-        ),
-      'issueCredential'
-    );
+    const credentialOption: W3cJsonLdSignCredentialOptions = {
+      credential: JsonTransformer.fromJSON(issueDto.credential, W3cCredential),
+      format: ClaimFormat.LdpVc,
+      proofType: 'Ed25519Signature2018',
+      verificationMethod: verificationMethod.id
+    };
+    const w3cVerifiableCredential =
+      await this.credoService.agent.w3cCredentials.signCredential<ClaimFormat.LdpVc>(credentialOption);
+    return w3cVerifiableCredential as CredoVcDto;
   }
 
-  async verifyCredential(
-    vc: VerifiableCredentialDto,
-    options: VerifyOptionsDto
-  ): Promise<VerificationResultDto> {
+  async verifyCredential(vc: CredoVcDto, options: VerifyOptionsDto): Promise<W3cVerifyCredentialResult> {
+    // TODO: Change W3cVerifyCredentialResult to VerificationResultDto
     const verifyOptions: ISpruceVerifyOptions = options;
-
-    return didKitExecutor<VerificationResultDto>(
-      () => verifyCredential(JSON.stringify(vc), JSON.stringify(verifyOptions)),
-      'verifyCredential'
-    );
+    const w3cVerifyCredentialOptions: W3cVerifyCredentialOptions<ClaimFormat.LdpVc> = {
+      credential: W3cJsonLdVerifiableCredential.fromJson(vc as any) //JsonTransformer.fromJSON(vc, W3cJsonLdVerifiableCredential),
+    };
+    const obj = { ...w3cVerifyCredentialOptions };
+    const respone = await this.credoService.agent.w3cCredentials.verifyCredential(obj as any);
+    return respone;
+    // return didKitExecutor<VerificationResultDto>(
+    //   () => verifyCredential(JSON.stringify(vc), JSON.stringify(verifyOptions)),
+    //   'verifyCredential'
+    // );
   }
 
   /**

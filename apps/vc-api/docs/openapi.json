@@ -708,10 +708,11 @@
         "required": ["id"]
       },
       "IssuerDto": { "type": "object", "properties": { "id": { "type": "string" } }, "required": ["id"] },
+      "W3cCredentialStatus": { "type": "object", "properties": {} },
       "CredentialDto": {
         "type": "object",
         "properties": {
-          "@context": {
+          "context": {
             "type": "array",
             "description": "The JSON-LD context of the credential.",
             "items": { "oneOf": [{ "type": "string" }, { "type": "object" }] }
@@ -736,9 +737,13 @@
             "description": "The expirationDate",
             "example": "2023-09-21T11:49:03.205Z"
           },
-          "credentialSubject": { "type": "object", "description": "The subject" }
+          "credentialSubject": { "type": "object", "description": "The subject" },
+          "credentialStatus": {
+            "description": "The credential Status",
+            "allOf": [{ "$ref": "#/components/schemas/W3cCredentialStatus" }]
+          }
         },
-        "required": ["@context", "type", "issuer", "issuanceDate", "credentialSubject"]
+        "required": ["context", "type", "issuer", "issuanceDate", "credentialSubject"]
       },
       "IssueOptionsDto": {
         "type": "object",
@@ -772,7 +777,7 @@
       "VerifiableCredentialDto": {
         "type": "object",
         "properties": {
-          "@context": {
+          "context": {
             "type": "array",
             "description": "The JSON-LD context of the credential.",
             "items": { "oneOf": [{ "type": "string" }, { "type": "object" }] }
@@ -798,9 +803,13 @@
             "example": "2023-09-21T11:49:03.205Z"
           },
           "credentialSubject": { "type": "object", "description": "The subject" },
+          "credentialStatus": {
+            "description": "The credential Status",
+            "allOf": [{ "$ref": "#/components/schemas/W3cCredentialStatus" }]
+          },
           "proof": { "type": "object", "description": "A JSON-LD Linked Data proof." }
         },
-        "required": ["@context", "type", "issuer", "issuanceDate", "credentialSubject", "proof"]
+        "required": ["context", "type", "issuer", "issuanceDate", "credentialSubject", "proof"]
       },
       "ProofPurpose": {
         "type": "string",

@@ -6,7 +6,7 @@
 import { VerifiableCredentialDto } from '../dtos-credo/verifiable-credential.dto';
 import { VerifyOptionsDto } from './verify-options.dto';
 
-import { IsObject, ValidateNested, IsDefined } from 'class-validator';
+import { IsObject, ValidateNested, IsDefined, IsOptional } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 
@@ -41,5 +41,6 @@ export class VerifyCredentialDto {
       'https://w3c-ccg.github.io/vc-api/verifier.html#operation/verifyCredential ' +
       'https://w3c-ccg.github.io/vc-api/verifier.html#operation/verifyPresentation'
   })
-  options: VerifyOptionsDto;
+  @IsOptional()
+  options?: VerifyOptionsDto;
 }
