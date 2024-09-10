@@ -11,15 +11,30 @@ export interface VerificationResult {
   /**
    * The checks performed
    */
-  checks: string[];
+  checks?: string[];
 
   /**
    * Warnings
    */
-  warnings: string[];
+  warnings?: string[];
 
   /**
    * Errors
    */
-  errors: string[];
+  errors?: string[];
+
+  /**
+   * The checks performed
+   */
+  isValid?: boolean;
+
+  /**
+   * Warnings
+   */
+  validations?: any;
+
+  /**
+   * Errors
+   */
+  error?: Error;
 }

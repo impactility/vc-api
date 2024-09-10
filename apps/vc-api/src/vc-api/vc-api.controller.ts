@@ -9,7 +9,6 @@ import {
   Controller,
   Get,
   HttpCode,
-  InternalServerErrorException,
   Logger,
   NotFoundException,
   Param,
@@ -32,7 +31,6 @@ import {
   getSchemaPath
 } from '@nestjs/swagger';
 import { Response } from 'express';
-import { IPresentationDefinition } from '@sphereon/pex';
 import { CredentialsService } from './credentials/credentials.service';
 import { IssueCredentialDto } from './credentials/dtos/issue-credential.dto';
 import { VerifiableCredentialDto } from './credentials/dtos/verifiable-credential.dto';
@@ -52,6 +50,7 @@ import { BadRequestErrorResponseDto } from '../dtos/bad-request-error-response.d
 import { ConflictErrorResponseDto } from '../dtos/conflict-error-response.dto';
 import { NotFoundErrorResponseDto } from '../dtos/not-found-error-response.dto';
 import { InternalServerErrorResponseDto } from '../dtos/internal-server-error-response.dto';
+import { CreatePresentationDto } from './credentials/dtos/create-presentation.dto';
 
 /**
  * VcApi API conforms to W3C vc-api
@@ -109,7 +108,7 @@ export class VcApiController {
       verifyCredentialDto.options
     );
 
-    if (verificationResult.errors.length > 0) {
+    if (verificationResult.error) {
       throw new BadRequestException(verificationResult);
     }
 
@@ -149,17 +148,8 @@ export class VcApiController {
   })
   //TODO: define request body DTO class
   @ApiCreatedResponse({ type: PresentationDto })
-  async presentationFrom(
-    @Body()
-    {
-      presentationDefinition,
-      credentials
-    }: {
-      presentationDefinition: IPresentationDefinition;
-      credentials: VerifiableCredentialDto[];
-    }
-  ): Promise<PresentationDto> {
-    return this.vcApiService.presentationFrom(presentationDefinition, credentials);
+  async presentationFrom(@Body() createPresentationDto: CreatePresentationDto): Promise<PresentationDto> {
+    return this.vcApiService.presentationFrom(createPresentationDto);
   }
 
   @Post('presentations/prove')

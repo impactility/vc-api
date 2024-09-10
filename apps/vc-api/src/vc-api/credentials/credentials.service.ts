@@ -4,13 +4,7 @@
  */
 
 import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
-import {
-  issueCredential,
-  verifyCredential,
-  issuePresentation,
-  verifyPresentation,
-  DIDAuth
-} from '@spruceid/didkit-wasm-node';
+import { DIDAuth } from '@spruceid/didkit-wasm-node';
 import { JWK } from 'jose';
 import { DIDService } from '../../did/did.service';
 import { KeyService } from '../../key/key.service';
@@ -28,6 +22,23 @@ import { IPresentationDefinition, IVerifiableCredential, PEX, ProofPurpose, Stat
 import { VerificationMethod } from 'did-resolver';
 import { ProvePresentationOptionsDto } from './dtos/prove-presentation-options.dto';
 import { didKitExecutor } from './utils/did-kit-executor.function';
+import { CredoService } from '../../credo/credo.service';
+import {
+  ClaimFormat,
+  JsonTransformer,
+  W3cCredential,
+  W3cJsonLdSignCredentialOptions,
+  W3cJsonLdVerifiableCredential,
+  W3cJsonLdVerifiablePresentation,
+  W3cJsonLdVerifyCredentialOptions,
+  W3cPresentation,
+  W3cSignPresentationOptions,
+  W3cVerifiableCredential,
+  W3cVerifyCredentialOptions,
+  W3cVerifyCredentialResult,
+  W3cVerifyPresentationOptions
+} from '@credo-ts/core';
+import { CreatePresentationDto } from './dtos/create-presentation.dto';
 
 /**
  * Credential issuance options that Spruce accepts
@@ -54,7 +65,11 @@ interface ISpruceVerifyOptions {
  */
 @Injectable()
 export class CredentialsService implements CredentialVerifier {
-  constructor(private didService: DIDService, private keyService: KeyService) {}
+  constructor(
+    private didService: DIDService,
+    private keyService: KeyService,
+    private credoService: CredoService
+  ) {}
 
   async issueCredential(issueDto: IssueCredentialDto): Promise<VerifiableCredentialDto> {
     const verificationMethod = await this.getVerificationMethodForDid(
@@ -62,93 +77,61 @@ export class CredentialsService implements CredentialVerifier {
         ? issueDto.credential.issuer
         : issueDto.credential.issuer.id
     );
-    const key = await this.getKeyForVerificationMethod(verificationMethod.id);
-    const proofOptions = this.mapVcApiIssueOptionsToSpruceIssueOptions(
-      issueDto.options || ({} as IssueOptionsDto),
-      verificationMethod.id
-    );
-
-    return didKitExecutor<VerifiableCredentialDto>(
-      () =>
-        issueCredential(
-          JSON.stringify(issueDto.credential),
-          JSON.stringify(proofOptions),
-          JSON.stringify(key)
-        ),
-      'issueCredential'
-    );
+    const credentialOption: W3cJsonLdSignCredentialOptions = {
+      credential: W3cCredential.fromJson(issueDto.credential), //JsonTransformer.fromJSON(issueDto.credential, W3cCredential),
+      format: ClaimFormat.LdpVc,
+      proofType: 'Ed25519Signature2018',
+      verificationMethod: verificationMethod.id
+    };
+    const w3cVerifiableCredential =
+      await this.credoService.agent.w3cCredentials.signCredential<ClaimFormat.LdpVc>(credentialOption);
+    return w3cVerifiableCredential.toJson() as VerifiableCredentialDto;
   }
 
   async verifyCredential(
     vc: VerifiableCredentialDto,
     options: VerifyOptionsDto
   ): Promise<VerificationResultDto> {
-    const verifyOptions: ISpruceVerifyOptions = options;
-
-    return didKitExecutor<VerificationResultDto>(
-      () => verifyCredential(JSON.stringify(vc), JSON.stringify(verifyOptions)),
-      'verifyCredential'
-    );
+    const w3cVerifyCredentialOptions: W3cVerifyCredentialOptions<ClaimFormat.LdpVc> = {
+      credential: W3cJsonLdVerifiableCredential.fromJson(vc) //JsonTransformer.fromJSON(vc, W3cJsonLdVerifiableCredential),
+    };
+    const obj = { ...w3cVerifyCredentialOptions };
+    const verifyCredential: W3cVerifyCredentialResult =
+      await this.credoService.agent.w3cCredentials.verifyCredential(obj as any);
+    return verifyCredential;
   }
 
   /**
    * Assembles presentation from provided credentials according to definition
    */
-  presentationFrom(
-    presentationDefinition: IPresentationDefinition,
-    credentials: VerifiableCredentialDto[]
-  ): PresentationDto {
-    const pex = new PEX();
-    // presentation should be created from selected credentials https://github.com/Sphereon-Opensource/pex/issues/91#issuecomment-1115940908
-    const { verifiableCredential, areRequiredCredentialsPresent } = pex.selectFrom(
-      presentationDefinition,
-      credentials as IVerifiableCredential[]
-    );
-    if (areRequiredCredentialsPresent !== Status.INFO) {
-      throw new InternalServerErrorException('Credentials do not satisfy defintion');
-    }
-    const presentation = pex.presentationFrom(presentationDefinition, verifiableCredential);
-
-    // embed submission context to workaround failing to load context 'https://identity.foundation/presentation-exchange/submission/v1'
-    const submissionContext = {
-      PresentationSubmission: {
-        '@id': 'https://identity.foundation/presentation-exchange/#presentation-submission',
-        '@context': {
-          '@version': '1.1',
-          presentation_submission: {
-            '@id': 'https://identity.foundation/presentation-exchange/#presentation-submission',
-            '@type': '@json'
-          }
-        }
-      }
-    };
-    const submissionContextUri = 'https://identity.foundation/presentation-exchange/submission/v1';
-
-    presentation['@context'] = Array.isArray(presentation['@context'])
-      ? presentation['@context']
-      : [presentation['@context']];
-
-    presentation['@context'] = presentation['@context'].filter((c) => c !== submissionContextUri);
-    presentation['@context'].push(submissionContext as any);
-    return presentation as PresentationDto;
+  async presentationFrom({ credentials, id, holder }: CreatePresentationDto): Promise<PresentationDto> {
+    const presentation = await this.credoService.agent.w3cCredentials.createPresentation({
+      credentials: credentials.map((credential) => W3cJsonLdVerifiableCredential.fromJson(credential)),
+      holder,
+      id
+    });
+    return JsonTransformer.toJSON(presentation) as PresentationDto;
   }
 
   async provePresentation(provePresentationDto: ProvePresentationDto): Promise<VerifiablePresentationDto> {
-    const verificationMethodId =
-      provePresentationDto.options.verificationMethod ??
-      (await this.getVerificationMethodForDid(provePresentationDto.presentation.holder)).id;
-    const key = await this.getKeyForVerificationMethod(verificationMethodId);
-    const proofOptions = this.mapVcApiPresentationOptionsToSpruceIssueOptions(provePresentationDto.options);
-
-    return didKitExecutor<VerifiablePresentationDto>(
-      () =>
-        issuePresentation(
-          JSON.stringify(provePresentationDto.presentation),
-          JSON.stringify(proofOptions),
-          JSON.stringify(key)
-        ),
-      'issuePresentation'
+    const verificationMethod = await this.getVerificationMethodForDid(
+      provePresentationDto.presentation.verifiableCredential[0].credentialSubject.id as string
     );
+
+    const signPresentationOption: W3cSignPresentationOptions<ClaimFormat.LdpVp> = {
+      presentation: JsonTransformer.fromJSON(provePresentationDto.presentation, W3cPresentation),
+      challenge: provePresentationDto.options.challenge,
+      verificationMethod: verificationMethod.id,
+      format: ClaimFormat.LdpVp,
+      proofType: 'Ed25519Signature2018',
+      proofPurpose: provePresentationDto.options.proofPurpose
+    };
+    const w3cVerifiablePresentation =
+      await this.credoService.agent.w3cCredentials.signPresentation<ClaimFormat.LdpVp>(
+        signPresentationOption
+      );
+
+    return w3cVerifiablePresentation.toJson() as VerifiablePresentationDto;
   }
 
   /**
@@ -178,11 +161,14 @@ export class CredentialsService implements CredentialVerifier {
     options: VerifyOptionsDto
   ): Promise<VerificationResultDto> {
     const verifyOptions: ISpruceVerifyOptions = options;
-
-    return didKitExecutor<VerificationResultDto>(
-      () => verifyPresentation(JSON.stringify(vp), JSON.stringify(verifyOptions)),
-      'verifyPresentation'
+    const w3cVerifyPresentationOptions: W3cVerifyPresentationOptions = {
+      presentation: JsonTransformer.fromJSON(vp, W3cJsonLdVerifiablePresentation),
+      challenge: verifyOptions.challenge
+    };
+    const verifyPresentation = await this.credoService.agent.w3cCredentials.verifyPresentation(
+      w3cVerifyPresentationOptions
     );
+    return verifyPresentation;
   }
 
   private async getVerificationMethodForDid(did: string): Promise<VerificationMethod> {

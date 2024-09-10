@@ -153,12 +153,12 @@ export const getChargingDataCredential: (issuerDid: string) => CredentialDto = (
 export const energyContractVerifiableCredential: VerifiableCredential = {
   ...energyContractCredential,
   proof: {
-    type: 'Ed25519Signature2018',
-    proofPurpose: 'assertionMethod',
     verificationMethod:
-      'did:key:z6MkoB84PJkXzFpbqtfYV5WqBKHCSDf7A1SeepwzvE36QvCF#z6MkoB84PJkXzFpbqtfYV5WqBKHCSDf7A1SeepwzvE36QvCF',
-    created: '2021-11-16T14:52:19.514Z',
-    jws: 'eyJhbGciOiJFZERTQSIsImNyaXQiOlsiYjY0Il0sImI2NCI6ZmFsc2V9..zgBHxtdwo17BK6EZCQik9Bxa_rLn-B2DgK3bkCVFZWQqlWb-W7goxPWBqidUrr2iufYoFdsdQwmoYBeu973YBA'
+      'did:key:z6MknVzMUmfDwYnWBcnTtVYknYcnP63SiQWTVnjfrGCQhRm9#z6MknVzMUmfDwYnWBcnTtVYknYcnP63SiQWTVnjfrGCQhRm9',
+    type: 'Ed25519Signature2018',
+    created: '2024-09-05T09:23:26Z',
+    proofPurpose: 'assertionMethod',
+    jws: 'eyJhbGciOiJFZERTQSIsImI2NCI6ZmFsc2UsImNyaXQiOlsiYjY0Il19..Ldfx8MwoKWt6WARPGPM02OYupP5V76FCsFXlgPCd36Ykqwm7lDAX3QPjplGE_yQtYHnTZsnjN868L-Ls6rREBw'
   }
 };
 

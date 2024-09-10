@@ -113,12 +113,10 @@ describe('CredentialsService', () => {
       credential: getChargingDataCredential(did),
       options: issueOptions
     });
-    const presentation = service.presentationFrom(presentationDefinition as IPresentationDefinition, [
-      vc1,
-      vc2
-    ]);
+    const presentation = service.presentationFrom({ credentials: [vc1, vc2] });
+    const presentationDto = JSON.parse(JSON.stringify(presentation));
     const vp = await service.provePresentation({
-      presentation,
+      presentation: presentationDto,
       options: { proofPurpose: ProofPurpose.authentication, verificationMethod }
     });
 
@@ -184,8 +182,8 @@ describe('CredentialsService', () => {
     expect(vp.holder).toEqual(did);
     expect(vp.proof).toBeDefined();
     const authVerification = await service.verifyPresentation(vp, { challenge });
-    expect(authVerification.checks).toHaveLength(1);
-    expect(authVerification.checks[0]).toEqual('proof');
-    expect(authVerification.errors).toHaveLength(0);
+    expect(authVerification.isValid).toBeTruthy();
+    // expect(authVerification.checks[0]).toEqual('proof');
+    expect(authVerification.error).toBeUndefined();
   });
 });

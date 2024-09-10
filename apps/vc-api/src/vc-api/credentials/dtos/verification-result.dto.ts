@@ -15,15 +15,24 @@ export class VerificationResultDto implements VerificationResult {
   @IsArray()
   @IsString({ each: true })
   @ApiProperty({ description: 'The checks performed' })
-  checks: string[];
+  checks?: string[];
 
   @IsArray()
   @IsString({ each: true })
   @ApiProperty({ description: 'Warnings' })
-  warnings: string[];
+  warnings?: string[];
 
   @IsArray()
   @IsString({ each: true })
   @ApiProperty({ description: 'Errors' })
-  errors: string[];
+  errors?: string[];
+
+  @ApiProperty({ description: 'Error' })
+  error?: Error;
+
+  @ApiProperty({ description: 'Is the credential valid' })
+  isValid?: boolean;
+
+  @ApiProperty({ description: 'The validations performed' })
+  validations?: any;
 }
