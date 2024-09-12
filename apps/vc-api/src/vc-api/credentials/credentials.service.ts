@@ -4,7 +4,6 @@
  */
 
 import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
-import { DIDAuth } from '@spruceid/didkit-wasm-node';
 import { JWK } from 'jose';
 import { DIDService } from '../../did/did.service';
 import { KeyService } from '../../key/key.service';
@@ -14,14 +13,12 @@ import { VerifiableCredentialDto } from './dtos/verifiable-credential.dto';
 import { VerifiablePresentationDto } from './dtos/verifiable-presentation.dto';
 import { VerifyOptionsDto } from './dtos/verify-options.dto';
 import { VerificationResultDto } from './dtos/verification-result.dto';
-import { AuthenticateDto } from './dtos/authenticate.dto';
 import { ProvePresentationDto } from './dtos/prove-presentation.dto';
 import { CredentialVerifier } from './types/credential-verifier';
 import { PresentationDto } from './dtos/presentation.dto';
 import { IPresentationDefinition, IVerifiableCredential, PEX, ProofPurpose, Status } from '@sphereon/pex';
 import { VerificationMethod } from 'did-resolver';
 import { ProvePresentationOptionsDto } from './dtos/prove-presentation-options.dto';
-import { didKitExecutor } from './utils/did-kit-executor.function';
 import { CredoService } from '../../credo/credo.service';
 import {
   ClaimFormat,
@@ -30,15 +27,12 @@ import {
   W3cJsonLdSignCredentialOptions,
   W3cJsonLdVerifiableCredential,
   W3cJsonLdVerifiablePresentation,
-  W3cJsonLdVerifyCredentialOptions,
   W3cPresentation,
   W3cSignPresentationOptions,
-  W3cVerifiableCredential,
   W3cVerifyCredentialOptions,
   W3cVerifyCredentialResult,
   W3cVerifyPresentationOptions
 } from '@credo-ts/core';
-import { CreatePresentationDto } from './dtos/create-presentation.dto';
 
 /**
  * Credential issuance options that Spruce accepts
@@ -78,7 +72,7 @@ export class CredentialsService implements CredentialVerifier {
         : issueDto.credential.issuer.id
     );
     const credentialOption: W3cJsonLdSignCredentialOptions = {
-      credential: W3cCredential.fromJson(issueDto.credential), //JsonTransformer.fromJSON(issueDto.credential, W3cCredential),
+      credential: W3cCredential.fromJson(issueDto.credential),
       format: ClaimFormat.LdpVc,
       proofType: 'Ed25519Signature2018',
       verificationMethod: verificationMethod.id
@@ -88,12 +82,9 @@ export class CredentialsService implements CredentialVerifier {
     return w3cVerifiableCredential.toJson() as VerifiableCredentialDto;
   }
 
-  async verifyCredential(
-    vc: VerifiableCredentialDto,
-    options: VerifyOptionsDto
-  ): Promise<VerificationResultDto> {
+  async verifyCredential(vc: VerifiableCredentialDto): Promise<VerificationResultDto> {
     const w3cVerifyCredentialOptions: W3cVerifyCredentialOptions<ClaimFormat.LdpVc> = {
-      credential: W3cJsonLdVerifiableCredential.fromJson(vc) //JsonTransformer.fromJSON(vc, W3cJsonLdVerifiableCredential),
+      credential: W3cJsonLdVerifiableCredential.fromJson(vc)
     };
     const obj = { ...w3cVerifyCredentialOptions };
     const verifyCredential: W3cVerifyCredentialResult =
@@ -104,24 +95,40 @@ export class CredentialsService implements CredentialVerifier {
   /**
    * Assembles presentation from provided credentials according to definition
    */
-  async presentationFrom({ credentials, id, holder }: CreatePresentationDto): Promise<PresentationDto> {
-    const presentation = await this.credoService.agent.w3cCredentials.createPresentation({
-      credentials: credentials.map((credential) => W3cJsonLdVerifiableCredential.fromJson(credential)),
-      holder,
-      id
-    });
-    return JsonTransformer.toJSON(presentation) as PresentationDto;
+  presentationFrom(
+    presentationDefinition: IPresentationDefinition,
+    credentials: VerifiableCredentialDto[]
+  ): PresentationDto {
+    const pex = new PEX();
+    // presentation should be created from selected credentials https://github.com/Sphereon-Opensource/pex/issues/91#issuecomment-1115940908
+    const { verifiableCredential, areRequiredCredentialsPresent } = pex.selectFrom(
+      presentationDefinition,
+      credentials as IVerifiableCredential[]
+    );
+    if (areRequiredCredentialsPresent !== Status.INFO) {
+      throw new InternalServerErrorException('Credentials do not satisfy defintion');
+    }
+    const presentation = pex.presentationFrom(presentationDefinition, verifiableCredential);
+
+    const submissionContextUri = 'https://identity.foundation/presentation-exchange/submission/v1';
+
+    presentation['@context'] = Array.isArray(presentation['@context'])
+      ? presentation['@context']
+      : [presentation['@context']];
+
+    presentation['@context'] = presentation['@context'].filter((c) => c !== submissionContextUri);
+    return presentation as PresentationDto;
   }
 
   async provePresentation(provePresentationDto: ProvePresentationDto): Promise<VerifiablePresentationDto> {
-    const verificationMethod = await this.getVerificationMethodForDid(
-      provePresentationDto.presentation.verifiableCredential[0].credentialSubject.id as string
-    );
+    const verificationMethodId =
+      provePresentationDto.options.verificationMethod ??
+      (await this.getVerificationMethodForDid(provePresentationDto.presentation.holder)).id;
 
     const signPresentationOption: W3cSignPresentationOptions<ClaimFormat.LdpVp> = {
       presentation: JsonTransformer.fromJSON(provePresentationDto.presentation, W3cPresentation),
       challenge: provePresentationDto.options.challenge,
-      verificationMethod: verificationMethod.id,
+      verificationMethod: verificationMethodId,
       format: ClaimFormat.LdpVp,
       proofType: 'Ed25519Signature2018',
       proofPurpose: provePresentationDto.options.proofPurpose
@@ -132,28 +139,6 @@ export class CredentialsService implements CredentialVerifier {
       );
 
     return w3cVerifiablePresentation.toJson() as VerifiablePresentationDto;
-  }
-
-  /**
-   * Provide authentication as DID in response to DIDAuth Request
-   * https://w3c-ccg.github.io/vp-request-spec/#did-authentication-request
-   */
-  async didAuthenticate(authenticateDto: AuthenticateDto): Promise<VerifiablePresentationDto> {
-    if (authenticateDto.options.proofPurpose !== ProofPurpose.authentication) {
-      throw new BadRequestException('proof purpose must be authentication for DIDAuth');
-    }
-
-    const verificationMethodId =
-      authenticateDto.options.verificationMethod ??
-      (await this.getVerificationMethodForDid(authenticateDto.did)).id;
-
-    const key = await this.getKeyForVerificationMethod(verificationMethodId);
-    const proofOptions = this.mapVcApiPresentationOptionsToSpruceIssueOptions(authenticateDto.options);
-
-    return didKitExecutor<VerifiablePresentationDto>(
-      () => DIDAuth(authenticateDto.did, JSON.stringify(proofOptions), JSON.stringify(key)),
-      'DIDAuth'
-    );
   }
 
   async verifyPresentation(

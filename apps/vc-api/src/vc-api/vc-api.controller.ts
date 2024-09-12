@@ -34,7 +34,6 @@ import { Response } from 'express';
 import { CredentialsService } from './credentials/credentials.service';
 import { IssueCredentialDto } from './credentials/dtos/issue-credential.dto';
 import { VerifiableCredentialDto } from './credentials/dtos/verifiable-credential.dto';
-import { AuthenticateDto } from './credentials/dtos/authenticate.dto';
 import { VerifiablePresentationDto } from './credentials/dtos/verifiable-presentation.dto';
 import { ExchangeService } from './exchanges/exchange.service';
 import { ExchangeResponseDto } from './exchanges/dtos/exchange-response.dto';
@@ -50,7 +49,7 @@ import { BadRequestErrorResponseDto } from '../dtos/bad-request-error-response.d
 import { ConflictErrorResponseDto } from '../dtos/conflict-error-response.dto';
 import { NotFoundErrorResponseDto } from '../dtos/not-found-error-response.dto';
 import { InternalServerErrorResponseDto } from '../dtos/internal-server-error-response.dto';
-import { CreatePresentationDto } from './credentials/dtos/create-presentation.dto';
+import { IPresentationDefinition } from '@sphereon/pex';
 
 /**
  * VcApi API conforms to W3C vc-api
@@ -104,8 +103,7 @@ export class VcApiController {
     verifyCredentialDto: VerifyCredentialDto
   ): Promise<VerificationResultDto> {
     const verificationResult = await this.vcApiService.verifyCredential(
-      verifyCredentialDto.verifiableCredential,
-      verifyCredentialDto.options
+      verifyCredentialDto.verifiableCredential
     );
 
     if (verificationResult.error) {
@@ -113,31 +111,6 @@ export class VcApiController {
     }
 
     return verificationResult;
-  }
-
-  // VERIFIER https://w3c-ccg.github.io/vc-api/verifier.html
-
-  // HOLDER/PRESENTER
-  // https://w3c-ccg.github.io/vc-api/#presenting
-  // https://w3c-ccg.github.io/vc-api/holder.html
-
-  /**
-   * @param authenticateDto DID to authenticate as, and, proof options
-   * @returns a verifiable presentation
-   */
-  @Post('presentations/prove/authentication')
-  @ApiOperation({
-    description:
-      'Issue a DIDAuth presentation that authenticates a DID.\n' +
-      'Not a part of VC-API? Maybe there is a DID Auth spec though?\n' +
-      'A NON-STANDARD endpoint currently.'
-  })
-  @ApiBody({ type: AuthenticateDto })
-  @ApiCreatedResponse({ type: VerifiablePresentationDto })
-  async proveAuthenticationPresentation(
-    @Body() authenticateDto: AuthenticateDto
-  ): Promise<VerifiablePresentationDto> {
-    return await this.vcApiService.didAuthenticate(authenticateDto);
   }
 
   @Post('presentations/from')
@@ -148,8 +121,17 @@ export class VcApiController {
   })
   //TODO: define request body DTO class
   @ApiCreatedResponse({ type: PresentationDto })
-  async presentationFrom(@Body() createPresentationDto: CreatePresentationDto): Promise<PresentationDto> {
-    return this.vcApiService.presentationFrom(createPresentationDto);
+  async presentationFrom(
+    @Body()
+    {
+      presentationDefinition,
+      credentials
+    }: {
+      presentationDefinition: IPresentationDefinition;
+      credentials: VerifiableCredentialDto[];
+    }
+  ): Promise<PresentationDto> {
+    return this.vcApiService.presentationFrom(presentationDefinition, credentials);
   }
 
   @Post('presentations/prove')

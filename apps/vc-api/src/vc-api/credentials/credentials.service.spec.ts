@@ -113,7 +113,10 @@ describe('CredentialsService', () => {
       credential: getChargingDataCredential(did),
       options: issueOptions
     });
-    const presentation = service.presentationFrom({ credentials: [vc1, vc2] });
+    const presentation = service.presentationFrom(presentationDefinition as IPresentationDefinition, [
+      vc1,
+      vc2
+    ]);
     const presentationDto = JSON.parse(JSON.stringify(presentation));
     const vp = await service.provePresentation({
       presentation: presentationDto,
@@ -152,8 +155,7 @@ describe('CredentialsService', () => {
   });
 
   it('should be able to verify a credential', async () => {
-    const verifyOptions: VerifyOptionsDto = {};
-    const result = await service.verifyCredential(energyContractVerifiableCredential, verifyOptions);
+    const result = await service.verifyCredential(energyContractVerifiableCredential);
     const expectedResult = { checks: ['proof'], warnings: [], errors: [] };
     expect(result).toEqual(expectedResult);
   });
@@ -166,24 +168,5 @@ describe('CredentialsService', () => {
     const result = await service.verifyPresentation(rebeamVerifiablePresentation, verifyOptions);
     const expectedResult = { checks: ['proof'], warnings: [], errors: [] };
     expect(result).toEqual(expectedResult);
-  });
-
-  it('should be able to generate DIDAuth', async () => {
-    const issuanceOptions: ProvePresentationOptionsDto = {
-      verificationMethod: didDoc.verificationMethod[0].id,
-      proofPurpose: ProofPurpose.authentication,
-      created: '2021-11-16T14:52:19.514Z',
-      challenge
-    };
-    jest.spyOn(didService, 'getDID').mockResolvedValueOnce(didDoc);
-    jest.spyOn(didService, 'getVerificationMethod').mockResolvedValueOnce(didDoc.verificationMethod[0]);
-    jest.spyOn(keyService, 'getPrivateKeyFromKeyId').mockResolvedValueOnce(key);
-    const vp = await service.didAuthenticate({ did, options: issuanceOptions });
-    expect(vp.holder).toEqual(did);
-    expect(vp.proof).toBeDefined();
-    const authVerification = await service.verifyPresentation(vp, { challenge });
-    expect(authVerification.isValid).toBeTruthy();
-    // expect(authVerification.checks[0]).toEqual('proof');
-    expect(authVerification.error).toBeUndefined();
   });
 });

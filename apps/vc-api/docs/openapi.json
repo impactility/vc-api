@@ -212,53 +212,12 @@
         "tags": ["vc-api"]
       }
     },
-    "/v1/vc-api/presentations/prove/authentication": {
-      "post": {
-        "operationId": "VcApiController_proveAuthenticationPresentation",
-        "summary": "",
-        "description": "Issue a DIDAuth presentation that authenticates a DID.\nNot a part of VC-API? Maybe there is a DID Auth spec though?\nA NON-STANDARD endpoint currently.",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AuthenticateDto" } } }
-        },
-        "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": { "schema": { "$ref": "#/components/schemas/VerifiablePresentationDto" } }
-            }
-          },
-          "400": {
-            "description": "",
-            "content": {
-              "application/json": { "schema": { "$ref": "#/components/schemas/BadRequestErrorResponseDto" } }
-            }
-          },
-          "500": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/InternalServerErrorResponseDto" }
-              }
-            }
-          }
-        },
-        "tags": ["vc-api"]
-      }
-    },
     "/v1/vc-api/presentations/from": {
       "post": {
         "operationId": "VcApiController_presentationFrom",
         "summary": "",
         "description": "Creates a Presentation without Proof by passing in the Presentation Definition, selected Verifiable Credentials (TODO: and an optional holder (DID)).\nThe presentation contains the [presentation submission](https://identity.foundation/presentation-exchange/#presentation-submission) data that the verifier can use.",
         "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": { "schema": { "$ref": "#/components/schemas/CreatePresentationDto" } }
-          }
-        },
         "responses": {
           "201": {
             "description": "",
@@ -808,53 +767,15 @@
         },
         "required": ["@context", "type", "issuer", "issuanceDate", "credentialSubject", "proof"]
       },
-      "ProofPurpose": {
-        "type": "string",
-        "description": "The purpose of the proof. Default 'assertionMethod'.",
-        "enum": [
-          "assertionMethod",
-          "authentication",
-          "keyAgreement",
-          "contactAgreement",
-          "capabilityInvocation",
-          "capabilityDelegation"
-        ]
-      },
-      "VerifyOptionsDto": {
-        "type": "object",
-        "properties": {
-          "verificationMethod": {
-            "type": "string",
-            "description": "The URI of the verificationMethod used for the proof. Default assertionMethod URI."
-          },
-          "proofPurpose": { "$ref": "#/components/schemas/ProofPurpose" },
-          "created": {
-            "type": "string",
-            "description": "The date and time of the proof (with a maximum accuracy in seconds). Default current system time."
-          },
-          "challenge": {
-            "type": "string",
-            "description": "A challenge provided by the requesting party of the proof. For example 6e62f66e-67de-11eb-b490-ef3eeefa55f2"
-          },
-          "domain": {
-            "type": "string",
-            "description": "The intended domain of validity for the proof. For example website.example"
-          }
-        }
-      },
       "VerifyCredentialDto": {
         "type": "object",
         "properties": {
           "verifiableCredential": {
             "description": "A JSON-LD Verifiable Credential with a proof. https://w3c-ccg.github.io/vc-api/issuer.html#operation/issueCredential",
             "allOf": [{ "$ref": "#/components/schemas/VerifiableCredentialDto" }]
-          },
-          "options": {
-            "description": "Parameters for verifying a verifiable credential or a verifiable presentation https://w3c-ccg.github.io/vc-api/verifier.html#operation/verifyCredential https://w3c-ccg.github.io/vc-api/verifier.html#operation/verifyPresentation",
-            "allOf": [{ "$ref": "#/components/schemas/VerifyOptionsDto" }]
           }
         },
-        "required": ["verifiableCredential", "options"]
+        "required": ["verifiableCredential"]
       },
       "Error": { "type": "object", "properties": {} },
       "VerificationResultDto": {
@@ -868,6 +789,47 @@
           "validations": { "type": "object", "description": "The validations performed" }
         },
         "required": ["checks", "warnings", "errors", "error", "isValid", "validations"]
+      },
+      "PresentationDto": {
+        "type": "object",
+        "properties": {
+          "@context": {
+            "type": "array",
+            "description": "The JSON-LD context of the presentation.",
+            "items": { "oneOf": [{ "type": "string" }, { "type": "object" }] }
+          },
+          "id": {
+            "type": "string",
+            "description": "The ID of the presentation. The id property is optional and MAY be used to provide a unique identifier for the presentation. https://www.w3.org/TR/vc-data-model/#presentations-0"
+          },
+          "type": {
+            "description": "The JSON-LD type of the presentation.",
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "holder": {
+            "type": "string",
+            "description": "The holder - will be ignored if no proof is present since there is no proof of authority over the credentials"
+          },
+          "verifiableCredential": {
+            "description": "The Verifiable Credentials",
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/VerifiableCredentialDto" }
+          }
+        },
+        "required": ["@context", "type"]
+      },
+      "ProofPurpose": {
+        "type": "string",
+        "description": "The purpose of the proof. Default 'assertionMethod'.",
+        "enum": [
+          "assertionMethod",
+          "authentication",
+          "keyAgreement",
+          "contactAgreement",
+          "capabilityInvocation",
+          "capabilityDelegation"
+        ]
       },
       "ProvePresentationOptionsDto": {
         "type": "object",
@@ -900,13 +862,13 @@
         },
         "required": ["verificationMethod"]
       },
-      "AuthenticateDto": {
+      "ProvePresentationDto": {
         "type": "object",
         "properties": {
-          "did": { "type": "string" },
+          "presentation": { "$ref": "#/components/schemas/PresentationDto" },
           "options": { "$ref": "#/components/schemas/ProvePresentationOptionsDto" }
         },
-        "required": ["did", "options"]
+        "required": ["presentation", "options"]
       },
       "VerifiablePresentationDto": {
         "type": "object",
@@ -938,55 +900,27 @@
         },
         "required": ["@context", "type", "proof"]
       },
-      "CreatePresentationDto": {
+      "VerifyOptionsDto": {
         "type": "object",
         "properties": {
-          "credentials": {
-            "description": "Verifiable credentials",
-            "type": "array",
-            "items": { "$ref": "#/components/schemas/VerifiableCredentialDto" }
-          },
-          "id": { "type": "string" },
-          "holder": { "type": "string" }
-        },
-        "required": ["credentials", "id", "holder"]
-      },
-      "PresentationDto": {
-        "type": "object",
-        "properties": {
-          "@context": {
-            "type": "array",
-            "description": "The JSON-LD context of the presentation.",
-            "items": { "oneOf": [{ "type": "string" }, { "type": "object" }] }
-          },
-          "id": {
+          "verificationMethod": {
             "type": "string",
-            "description": "The ID of the presentation. The id property is optional and MAY be used to provide a unique identifier for the presentation. https://www.w3.org/TR/vc-data-model/#presentations-0"
+            "description": "The URI of the verificationMethod used for the proof. Default assertionMethod URI."
           },
-          "type": {
-            "description": "The JSON-LD type of the presentation.",
-            "type": "array",
-            "items": { "type": "string" }
-          },
-          "holder": {
+          "proofPurpose": { "$ref": "#/components/schemas/ProofPurpose" },
+          "created": {
             "type": "string",
-            "description": "The holder - will be ignored if no proof is present since there is no proof of authority over the credentials"
+            "description": "The date and time of the proof (with a maximum accuracy in seconds). Default current system time."
           },
-          "verifiableCredential": {
-            "description": "The Verifiable Credentials",
-            "type": "array",
-            "items": { "$ref": "#/components/schemas/VerifiableCredentialDto" }
+          "challenge": {
+            "type": "string",
+            "description": "A challenge provided by the requesting party of the proof. For example 6e62f66e-67de-11eb-b490-ef3eeefa55f2"
+          },
+          "domain": {
+            "type": "string",
+            "description": "The intended domain of validity for the proof. For example website.example"
           }
-        },
-        "required": ["@context", "type"]
-      },
-      "ProvePresentationDto": {
-        "type": "object",
-        "properties": {
-          "presentation": { "$ref": "#/components/schemas/PresentationDto" },
-          "options": { "$ref": "#/components/schemas/ProvePresentationOptionsDto" }
-        },
-        "required": ["presentation", "options"]
+        }
       },
       "VerifyPresentationDto": {
         "type": "object",
