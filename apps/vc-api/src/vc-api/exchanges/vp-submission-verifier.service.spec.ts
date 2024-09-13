@@ -15,7 +15,8 @@ import { VpSubmissionVerifierService } from './vp-submission-verifier.service';
 const presentationVerificationResult = {
   checks: ['proof'],
   warnings: [],
-  errors: []
+  errors: [],
+  isValid: true
 };
 
 const mockCredentialService = {

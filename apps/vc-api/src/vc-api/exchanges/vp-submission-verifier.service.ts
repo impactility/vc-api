@@ -29,9 +29,15 @@ export class VpSubmissionVerifierService implements SubmissionVerifier {
   ): Promise<VerificationResult> {
     const proofVerifiactionResult = await this.verifyPresentationProof(vp, vpRequest.challenge);
     const vpRequestValidationErrors = this.validatePresentationAgainstVpRequest(vp, vpRequest);
+    const errors = [];
+    if (proofVerifiactionResult.error) {
+      errors.push(proofVerifiactionResult.error.message);
+    } else {
+      errors.push(...proofVerifiactionResult.errors);
+    }
     return {
-      errors: [...proofVerifiactionResult.errors, ...vpRequestValidationErrors],
-      checks: [...proofVerifiactionResult.checks],
+      errors: [...errors, ...vpRequestValidationErrors],
+      checks: [proofVerifiactionResult.validations],
       warnings: []
     };
   }
@@ -46,9 +52,9 @@ export class VpSubmissionVerifierService implements SubmissionVerifier {
       verificationMethod: vp.proof.verificationMethod as string //TODO: fix types here
     };
     const result = await this.credentialsService.verifyPresentation(vp, verifyOptions);
-    if (!result.checks.includes('proof') || result.errors.length > 0) {
+    if (result && !result.isValid) {
       return {
-        errors: [`verification of presentation proof not successful`, ...result.errors],
+        errors: [`verification of presentation proof not successful`, result.error?.message],
         checks: [],
         warnings: []
       };

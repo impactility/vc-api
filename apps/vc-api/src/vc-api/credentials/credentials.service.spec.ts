@@ -20,11 +20,21 @@ import {
   getChargingDataCredential,
   presentationDefinition,
   rebeamVerifiablePresentation,
-  rebeamPresentation
+  rebeamPresentation,
+  verifiablePresentation
 } from '../../../test/vc-api/credential.service.spec.data';
 import { challenge, did, key, didDoc } from '../../../test/vc-api/credential.service.spec.key';
 import { ProvePresentationOptionsDto } from './dtos/prove-presentation-options.dto';
-
+import { CredoService } from '../../credo/credo.service';
+import { mockCredoService } from '../../credo/__mocks__/credo.service';
+import { CredoModule } from '../../credo/credo.module';
+import {
+  JsonTransformer,
+  W3cCredential,
+  W3cJsonLdVerifiableCredential,
+  W3cJsonLdVerifiablePresentation,
+  W3cPresentation
+} from '@credo-ts/core';
 describe('CredentialsService', () => {
   let service: CredentialsService;
   let didService: DIDService;
@@ -33,6 +43,7 @@ describe('CredentialsService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
+      imports: [CredoModule],
       providers: [
         CredentialsService,
         {
@@ -47,6 +58,10 @@ describe('CredentialsService', () => {
           useValue: {
             getPrivateKeyFromKeyId: jest.fn()
           }
+        },
+        {
+          provide: CredoService,
+          useValue: mockCredoService
         }
       ]
     }).compile();
@@ -77,6 +92,10 @@ describe('CredentialsService', () => {
       jest.spyOn(didService, 'getDID').mockResolvedValueOnce(didDoc);
       jest.spyOn(didService, 'getVerificationMethod').mockResolvedValueOnce(didDoc.verificationMethod[0]);
       jest.spyOn(keyService, 'getPrivateKeyFromKeyId').mockResolvedValueOnce(key);
+      jest
+        .spyOn(mockCredoService.agent.w3cCredentials, 'signCredential')
+        .mockResolvedValue(W3cJsonLdVerifiableCredential.fromJson(expectedVc));
+
       const vc = await service.issueCredential({ credential, options: issuanceOptions });
       expect(vc['proof']['jws']).toBeDefined();
       /**
@@ -105,10 +124,16 @@ describe('CredentialsService', () => {
       }
     });
     jest.spyOn(keyService, 'getPrivateKeyFromKeyId').mockResolvedValue(key);
+    jest
+      .spyOn(mockCredoService.agent.w3cCredentials, 'signCredential')
+      .mockResolvedValue(W3cJsonLdVerifiableCredential.fromJson(energyContractVerifiableCredential));
     const vc1 = await service.issueCredential({
       credential: energyContractCredential,
       options: issueOptions
     });
+    jest
+      .spyOn(mockCredoService.agent.w3cCredentials, 'signCredential')
+      .mockResolvedValue(W3cJsonLdVerifiableCredential.fromJson(chargingDataVerifiableCredential));
     const vc2 = await service.issueCredential({
       credential: getChargingDataCredential(did),
       options: issueOptions
@@ -118,27 +143,42 @@ describe('CredentialsService', () => {
       vc2
     ]);
     const presentationDto = JSON.parse(JSON.stringify(presentation));
+    jest
+      .spyOn(mockCredoService.agent.w3cCredentials, 'signPresentation')
+      .mockResolvedValue(JsonTransformer.fromJSON(verifiablePresentation, W3cJsonLdVerifiablePresentation));
+
     const vp = await service.provePresentation({
       presentation: presentationDto,
-      options: { proofPurpose: ProofPurpose.authentication, verificationMethod }
+      options: { proofPurpose: ProofPurpose.authentication, verificationMethod, challenge: 'some-challenge' }
     });
+    jest
+      .spyOn(mockCredoService.agent.w3cCredentials, 'verifyPresentation')
+      .mockResolvedValue({ isValid: true });
 
     const verificationResult = await service.verifyPresentation(vp, {
       proofPurpose: ProofPurpose.authentication,
-      verificationMethod
+      verificationMethod,
+      challenge: 'some-challenge'
     });
-    expect(verificationResult).toEqual({ checks: ['proof'], warnings: [], errors: [] });
+    expect(verificationResult.isValid).toBeTruthy();
   });
 
   it('should prove a vp', async () => {
     const presentationOptions: ProvePresentationOptionsDto = {
       verificationMethod: didDoc.verificationMethod[0].id,
       proofPurpose: ProofPurpose.authentication,
-      created: rebeamVerifiablePresentation.proof.created
+      created: rebeamVerifiablePresentation.proof.created,
+      challenge: 'some-challenge'
     };
     jest.spyOn(didService, 'getDID').mockResolvedValueOnce(didDoc);
     jest.spyOn(didService, 'getVerificationMethod').mockResolvedValueOnce(didDoc.verificationMethod[0]);
     jest.spyOn(keyService, 'getPrivateKeyFromKeyId').mockResolvedValueOnce(key);
+    jest
+      .spyOn(mockCredoService.agent.w3cCredentials, 'signPresentation')
+      .mockResolvedValue(
+        JsonTransformer.fromJSON(rebeamVerifiablePresentation, W3cJsonLdVerifiablePresentation)
+      );
+
     const vp = await service.provePresentation({
       presentation: rebeamPresentation,
       options: presentationOptions
@@ -155,18 +195,25 @@ describe('CredentialsService', () => {
   });
 
   it('should be able to verify a credential', async () => {
+    jest
+      .spyOn(mockCredoService.agent.w3cCredentials, 'verifyCredential')
+      .mockResolvedValue({ isValid: true });
     const result = await service.verifyCredential(energyContractVerifiableCredential);
-    const expectedResult = { checks: ['proof'], warnings: [], errors: [] };
+    const expectedResult = { isValid: true };
     expect(result).toEqual(expectedResult);
   });
 
   it('should be able to verify a presentation', async () => {
     const verifyOptions: VerifyOptionsDto = {
       proofPurpose: ProofPurpose.authentication,
-      verificationMethod
+      verificationMethod,
+      challenge: 'some-challenge'
     };
+    jest
+      .spyOn(mockCredoService.agent.w3cCredentials, 'verifyPresentation')
+      .mockResolvedValue({ isValid: true });
     const result = await service.verifyPresentation(rebeamVerifiablePresentation, verifyOptions);
-    const expectedResult = { checks: ['proof'], warnings: [], errors: [] };
+    const expectedResult = { isValid: true };
     expect(result).toEqual(expectedResult);
   });
 });

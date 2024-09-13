@@ -2,7 +2,7 @@
  * Copyright 2021 - 2023 Energy Web Foundation
  * SPDX-License-Identifier: Apache-2.0
  */
-
+import { DIDAuth } from '@spruceid/didkit-wasm-node';
 import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { JWK } from 'jose';
 import { DIDService } from '../../did/did.service';
@@ -17,7 +17,7 @@ import { ProvePresentationDto } from './dtos/prove-presentation.dto';
 import { CredentialVerifier } from './types/credential-verifier';
 import { PresentationDto } from './dtos/presentation.dto';
 import { IPresentationDefinition, IVerifiableCredential, PEX, ProofPurpose, Status } from '@sphereon/pex';
-import { VerificationMethod } from 'did-resolver';
+import { DIDDocument, VerificationMethod } from 'did-resolver';
 import { ProvePresentationOptionsDto } from './dtos/prove-presentation-options.dto';
 import { CredoService } from '../../credo/credo.service';
 import {
@@ -33,6 +33,8 @@ import {
   W3cVerifyCredentialResult,
   W3cVerifyPresentationOptions
 } from '@credo-ts/core';
+import { AuthenticateDto } from './dtos/authenticate.dto';
+import { didKitExecutor } from './utils/did-kit-executor.function';
 
 /**
  * Credential issuance options that Spruce accepts
@@ -141,14 +143,32 @@ export class CredentialsService implements CredentialVerifier {
     return w3cVerifiablePresentation.toJson() as VerifiablePresentationDto;
   }
 
+  /**
+   * Provide authentication as DID in response to DIDAuth Request
+   * https://w3c-ccg.github.io/vp-request-spec/#did-authentication-request
+   */
+  async didAuthenticate(authenticateDto: AuthenticateDto): Promise<VerifiablePresentationDto> {
+    if (authenticateDto.options.proofPurpose !== ProofPurpose.authentication) {
+      throw new BadRequestException('proof purpose must be authentication for DIDAuth');
+    }
+    const didDoc: DIDDocument = await this.didService.getDID(authenticateDto.did);
+
+    const key = await this.keyService.getPrivateKeyFromKeyId(didDoc.verificationMethod[0].publicKeyBase58); //await this.getKeyForVerificationMethod(verificationMethodId);
+    const proofOptions = this.mapVcApiPresentationOptionsToSpruceIssueOptions(authenticateDto.options);
+
+    return didKitExecutor<VerifiablePresentationDto>(
+      () => DIDAuth(authenticateDto.did, JSON.stringify(proofOptions), JSON.stringify(key)),
+      'DIDAuth'
+    );
+  }
+
   async verifyPresentation(
     vp: VerifiablePresentationDto,
     options: VerifyOptionsDto
   ): Promise<VerificationResultDto> {
-    const verifyOptions: ISpruceVerifyOptions = options;
     const w3cVerifyPresentationOptions: W3cVerifyPresentationOptions = {
       presentation: JsonTransformer.fromJSON(vp, W3cJsonLdVerifiablePresentation),
-      challenge: verifyOptions.challenge
+      challenge: options.challenge
     };
     const verifyPresentation = await this.credoService.agent.w3cCredentials.verifyPresentation(
       w3cVerifyPresentationOptions

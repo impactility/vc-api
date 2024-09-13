@@ -214,11 +214,127 @@ export const rebeamPresentation: Presentation = {
 export const rebeamVerifiablePresentation = {
   ...rebeamPresentation,
   proof: {
-    type: 'Ed25519Signature2018',
-    proofPurpose: 'authentication',
     verificationMethod:
-      'did:key:z6MkoB84PJkXzFpbqtfYV5WqBKHCSDf7A1SeepwzvE36QvCF#z6MkoB84PJkXzFpbqtfYV5WqBKHCSDf7A1SeepwzvE36QvCF',
-    created: '2022-05-23T11:11:07.777Z',
-    jws: 'eyJhbGciOiJFZERTQSIsImNyaXQiOlsiYjY0Il0sImI2NCI6ZmFsc2V9..E4Tk6RGBmazl1k1iJ6itu0sUOWz7tRkJf-GP1nPXmoFmfdPH2uEEwTBlSvPSTfTkyZxCs_ra7nfVUCLtkqWIAA'
+      'did:key:z6Mkif6x1XFzFH67qiiXjQi96HzudWqdsqV76wLQa1vMVy4V#z6Mkif6x1XFzFH67qiiXjQi96HzudWqdsqV76wLQa1vMVy4V',
+    type: 'Ed25519Signature2018',
+    created: '2024-09-12T06:59:38Z',
+    proofPurpose: 'assertionMethod',
+    jws: 'eyJhbGciOiJFZERTQSIsImI2NCI6ZmFsc2UsImNyaXQiOlsiYjY0Il19..b6H2ufv0xPwBxAZhSSyOppipkzdpiIKhfZu8NHRZoy0AjL1RIE8XQzaaeumNXUtcRcDALAuawbOf1UxC3_64CQ'
+  }
+};
+
+export const verifiablePresentation = {
+  '@context': ['https://www.w3.org/2018/credentials/v1'],
+  type: ['VerifiablePresentation', 'PresentationSubmission'],
+  presentation_submission: {
+    id: 'ysEtA_34FRA2_uHr3Lwmv',
+    definition_id: '286bc1e0-f1bd-488a-a873-8d71be3c690e',
+    descriptor_map: [
+      {
+        id: 'energy_supplier_customer_contract',
+        format: 'ldp_vc',
+        path: '$.verifiableCredential[0]'
+      },
+      {
+        id: 'charging_data',
+        format: 'ldp_vc',
+        path: '$.verifiableCredential[1]'
+      }
+    ]
+  },
+  verifiableCredential: [
+    {
+      '@context': [
+        'https://www.w3.org/2018/credentials/v1',
+        {
+          value: 'ew:value',
+          namespace: 'ew:namespace',
+          ew: 'https://energyweb.org/ld-context-2022#',
+          key: 'ew:key',
+          role: {
+            '@id': 'ew:role',
+            '@type': 'ew:Role'
+          },
+          version: 'ew:version',
+          EWFRole: 'ew:EWFRole',
+          issuerFields: {
+            '@id': 'ew:issuerFields',
+            '@type': 'ew:IssuerFields'
+          }
+        }
+      ],
+      id: 'urn:uuid:7f94d397-3e70-4a43-945e-1a13069e636f',
+      type: ['VerifiableCredential', 'EWFRole'],
+      credentialSubject: {
+        issuerFields: [
+          {
+            key: 'accountId',
+            value: 'energycustomerid1'
+          }
+        ],
+        role: {
+          namespace: 'customer.roles.rebeam.apps.eliagroup.iam.ewc',
+          version: '1'
+        },
+        id: 'did:key:z6Mkif6x1XFzFH67qiiXjQi96HzudWqdsqV76wLQa1vMVy4V'
+      },
+      issuer: 'did:key:z6Mkif6x1XFzFH67qiiXjQi96HzudWqdsqV76wLQa1vMVy4V',
+      issuanceDate: '2022-03-18T08:57:32.477Z',
+      proof: {
+        verificationMethod:
+          'did:key:z6Mkif6x1XFzFH67qiiXjQi96HzudWqdsqV76wLQa1vMVy4V#z6Mkif6x1XFzFH67qiiXjQi96HzudWqdsqV76wLQa1vMVy4V',
+        type: 'Ed25519Signature2018',
+        created: '2024-09-12T06:59:38Z',
+        proofPurpose: 'assertionMethod',
+        jws: 'eyJhbGciOiJFZERTQSIsImI2NCI6ZmFsc2UsImNyaXQiOlsiYjY0Il19..b6H2ufv0xPwBxAZhSSyOppipkzdpiIKhfZu8NHRZoy0AjL1RIE8XQzaaeumNXUtcRcDALAuawbOf1UxC3_64CQ'
+      }
+    },
+    {
+      '@context': [
+        'https://www.w3.org/2018/credentials/v1',
+        {
+          timestamp: 'ew:timestamp',
+          kwh: 'ew:kwh',
+          chargingData: {
+            '@id': 'ew:chargingData',
+            '@type': 'ew:chargingData'
+          },
+          ChargingData: 'ew:ChargingData',
+          contractDID: 'ew:contractDID',
+          evseId: 'ew:evseId',
+          ew: 'https://energyweb.org/ld-context-2022#'
+        }
+      ],
+      id: 'urn:uuid:a6032135-75d6-4019-b59d-420168c7cd85',
+      type: ['VerifiableCredential', 'ChargingData'],
+      credentialSubject: {
+        chargingData: {
+          contractDID: 'did:ethr:blxm-local:0x429eCb49aAC34E076f19D5C91d7e8B956AEf9c08',
+          evseId: '123',
+          kwh: '5',
+          timestamp: '2022-04-05T15:45:35.346Z'
+        },
+        id: 'did:key:z6Mkif6x1XFzFH67qiiXjQi96HzudWqdsqV76wLQa1vMVy4V'
+      },
+      issuer: 'did:key:z6Mkif6x1XFzFH67qiiXjQi96HzudWqdsqV76wLQa1vMVy4V',
+      issuanceDate: '2022-03-18T08:57:32.477Z',
+      proof: {
+        verificationMethod:
+          'did:key:z6Mkif6x1XFzFH67qiiXjQi96HzudWqdsqV76wLQa1vMVy4V#z6Mkif6x1XFzFH67qiiXjQi96HzudWqdsqV76wLQa1vMVy4V',
+        type: 'Ed25519Signature2018',
+        created: '2024-09-12T07:01:01Z',
+        proofPurpose: 'assertionMethod',
+        jws: 'eyJhbGciOiJFZERTQSIsImI2NCI6ZmFsc2UsImNyaXQiOlsiYjY0Il19..fmm_D7phS_zROTFF_3Za6ifhDirktBPpXGSc3dm-JuDzpMeU7rTZND88uq6K0hEumzr5pyQeaMW1KP77nog7AQ'
+      }
+    }
+  ],
+  proof: {
+    verificationMethod:
+      'did:key:z6Mkif6x1XFzFH67qiiXjQi96HzudWqdsqV76wLQa1vMVy4V#z6Mkif6x1XFzFH67qiiXjQi96HzudWqdsqV76wLQa1vMVy4V',
+    type: 'Ed25519Signature2018',
+    created: '2024-09-12T11:09:21Z',
+    proofPurpose: 'authentication',
+    challenge: 'asdasdasd',
+    jws: 'eyJhbGciOiJFZERTQSIsImI2NCI6ZmFsc2UsImNyaXQiOlsiYjY0Il19..-Qa6tDkgtW1RoO3zZtC_cSEaBTYfJ4l0ypSGfbiLvKEeZ8xd1W-2Q51K2KJ-gSybVDw-0hZWaeDTW7IpFRZZDA'
   }
 };

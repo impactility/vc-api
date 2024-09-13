@@ -50,6 +50,7 @@ import { ConflictErrorResponseDto } from '../dtos/conflict-error-response.dto';
 import { NotFoundErrorResponseDto } from '../dtos/not-found-error-response.dto';
 import { InternalServerErrorResponseDto } from '../dtos/internal-server-error-response.dto';
 import { IPresentationDefinition } from '@sphereon/pex';
+import { AuthenticateDto } from './credentials/dtos/authenticate.dto';
 
 /**
  * VcApi API conforms to W3C vc-api
@@ -111,6 +112,31 @@ export class VcApiController {
     }
 
     return verificationResult;
+  }
+
+  // VERIFIER https://w3c-ccg.github.io/vc-api/verifier.html
+
+  // HOLDER/PRESENTER
+  // https://w3c-ccg.github.io/vc-api/#presenting
+  // https://w3c-ccg.github.io/vc-api/holder.html
+
+  /**
+   * @param authenticateDto DID to authenticate as, and, proof options
+   * @returns a verifiable presentation
+   */
+  @Post('presentations/prove/authentication')
+  @ApiOperation({
+    description:
+      'Issue a DIDAuth presentation that authenticates a DID.\n' +
+      'Not a part of VC-API? Maybe there is a DID Auth spec though?\n' +
+      'A NON-STANDARD endpoint currently.'
+  })
+  @ApiBody({ type: AuthenticateDto })
+  @ApiCreatedResponse({ type: VerifiablePresentationDto })
+  async proveAuthenticationPresentation(
+    @Body() authenticateDto: AuthenticateDto
+  ): Promise<VerifiablePresentationDto> {
+    return await this.vcApiService.didAuthenticate(authenticateDto);
   }
 
   @Post('presentations/from')

@@ -101,7 +101,8 @@ export const consentAndResidentCardExchangeSuite = () => {
       verifiableCredential: [issuedVPResidentCard.verifiableCredential[0]]
     };
     const residentCardPresentationOptions: ProvePresentationOptionsDto = {
-      verificationMethod: holderVerificationMethod
+      verificationMethod: holderVerificationMethod,
+      challenge: 'some-challenge'
     };
     const provePresentationDto = {
       options: residentCardPresentationOptions,
