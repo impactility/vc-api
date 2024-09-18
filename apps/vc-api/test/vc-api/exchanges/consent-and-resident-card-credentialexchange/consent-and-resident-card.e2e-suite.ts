@@ -57,7 +57,6 @@ export const consentAndResidentCardExchangeSuite = () => {
     expect(issuanceExchangeContinuationEndpoint).toContain(issuanceExchangeEndpoint);
 
     // As holder, create new DID and presentation to authentication as this DID
-    // DID auth presentation: https://github.com/spruceid/didkit/blob/c5c422f2469c2c5cc2f6e6d8746e95b552fce3ed/lib/web/src/lib.rs#L382
     holderDIDDoc = await walletClient.createDID('key');
     holderVerificationMethod = holderDIDDoc.verificationMethod[0].id;
     const options: ProvePresentationOptionsDto = {

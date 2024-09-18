@@ -63,9 +63,6 @@ importers:
       '@sphereon/pex':
         specifier: 1.1.3
         version: 1.1.3
-      '@spruceid/didkit-wasm-node':
-        specifier: ~0.2.1
-        version: 0.2.1
       axios:
         specifier: ~1.4.0
         version: 1.4.0

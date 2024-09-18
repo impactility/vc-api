@@ -5,7 +5,6 @@
 
 import { Test, TestingModule } from '@nestjs/testing';
 import { CredentialsService } from '../credentials/credentials.service';
-import { VerificationResult } from '../credentials/types/verification-result';
 import { VpRequestEntity } from './entities/vp-request.entity';
 import { VerifiablePresentation } from './types/verifiable-presentation';
 import { VpRequestQuery } from './types/vp-request-query';
@@ -14,10 +13,9 @@ import { VpSubmissionVerifierService } from './vp-submission-verifier.service';
 import { ExchangeVerificationResultDto } from './dtos/exchange-verification-result.dto';
 
 const presentationVerificationResult = {
-  checks: ['proof'],
   warnings: [],
   errors: [],
-  isValid: true
+  verified: true
 };
 
 const mockCredentialService = {

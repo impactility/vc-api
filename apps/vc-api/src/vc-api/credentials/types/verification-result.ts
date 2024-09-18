@@ -21,7 +21,7 @@ export interface VerificationResult {
   errors?: ProblemDetail[];
 
   /**
-   * The checks performed
+   * Verification status
    */
   verified?: boolean;
 }

@@ -8,6 +8,9 @@ import { CredentialDto } from 'src/vc-api/credentials/dtos/credential.dto';
 import { Presentation } from 'src/vc-api/exchanges/types/presentation';
 import { VerifiableCredential } from 'src/vc-api/exchanges/types/verifiable-credential';
 import { did } from './credential.service.spec.key';
+import { AuthenticateDto } from 'src/vc-api/credentials/dtos/authenticate.dto';
+import { VerifiablePresentationDto } from 'src/vc-api/credentials/dtos/verifiable-presentation.dto';
+import { VerificationResultDto } from 'src/vc-api/credentials/dtos/verification-result.dto';
 
 export const presentationDefinition = {
   id: '286bc1e0-f1bd-488a-a873-8d71be3c690e',
@@ -334,7 +337,41 @@ export const verifiablePresentation = {
     type: 'Ed25519Signature2018',
     created: '2024-09-12T11:09:21Z',
     proofPurpose: 'authentication',
-    challenge: 'asdasdasd',
+    challenge: 'some-challenge-2',
     jws: 'eyJhbGciOiJFZERTQSIsImI2NCI6ZmFsc2UsImNyaXQiOlsiYjY0Il19..-Qa6tDkgtW1RoO3zZtC_cSEaBTYfJ4l0ypSGfbiLvKEeZ8xd1W-2Q51K2KJ-gSybVDw-0hZWaeDTW7IpFRZZDA'
   }
+};
+
+export const didAuth = {
+  presentation: {
+    did: 'did:key:z6MkoB84PJkXzFpbqtfYV5WqBKHCSDf7A1SeepwzvE36QvCF',
+    options: {
+      verificationMethod: 'did:key:z6MkoB84PJkXzFpbqtfYV5WqBKHCSDf7A1SeepwzvE36QvCF#z6MkoB84PJkXzFpbqtfYV5WqBKHCSDf7A1SeepwzvE36QvCF',
+      proofPurpose: 'authentication',
+      challenge: 'some-challenge',
+    }
+  } as AuthenticateDto,
+  signedPresentation: {
+    '@context': [
+      'https://www.w3.org/2018/credentials/v1'
+    ],
+    type: [
+      'VerifiablePresentation',
+      'DidAuth'
+    ],
+    holder: 'did:key:z6MkoB84PJkXzFpbqtfYV5WqBKHCSDf7A1SeepwzvE36QvCF',
+    proof: {
+      verificationMethod: 'did:key:z6MkoB84PJkXzFpbqtfYV5WqBKHCSDf7A1SeepwzvE36QvCF#z6MkoB84PJkXzFpbqtfYV5WqBKHCSDf7A1SeepwzvE36QvCF',
+      type: 'Ed25519Signature2018',
+      created: '2024-09-18T17:55:18Z',
+      proofPurpose: 'authentication',
+      challenge: 'some-challenge',
+      jws: 'eyJhbGciOiJFZERTQSIsImI2NCI6ZmFsc2UsImNyaXQiOlsiYjY0Il19..22IJaDl9ALJ89CqBEnoVgEor0C-L-bERR6I1eHz7c_Ak3VeQgjuZG9aOa_1R_tr3ECI-hCL55G2JReEk-bi9DQ'
+    }
+  } as VerifiablePresentationDto,
+  verifiedPresentationResult: {
+    verified: true,
+    errors: [],
+    warnings: []
+  } as VerificationResultDto
 };

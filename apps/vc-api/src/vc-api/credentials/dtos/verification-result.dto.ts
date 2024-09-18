@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { IsArray, IsString } from 'class-validator';
+import { IsArray } from 'class-validator';
 import { VerificationResult } from '../types/verification-result';
 import { ApiProperty } from '@nestjs/swagger';
 import { ProblemDetail } from '../types/problem-detail';

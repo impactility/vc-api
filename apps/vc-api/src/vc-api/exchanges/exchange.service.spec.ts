@@ -241,7 +241,6 @@ describe('ExchangeService', () => {
 
           it('should contain correct verificationResult', async function () {
             expect(presentationSubmission.verificationResult).toEqual({
-              // verified: true,
               errors: [],
               warnings: []
             });

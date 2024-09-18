@@ -4,7 +4,6 @@
  */
 
 import { Test, TestingModule } from '@nestjs/testing';
-import { keyToVerificationMethod } from '@spruceid/didkit-wasm-node';
 import { CredentialsService } from './credentials.service';
 import { IssueOptionsDto } from './dtos/issue-options.dto';
 import { VerifyOptionsDto } from './dtos/verify-options.dto';
@@ -21,20 +20,16 @@ import {
   presentationDefinition,
   rebeamVerifiablePresentation,
   rebeamPresentation,
-  verifiablePresentation
+  verifiablePresentation,
+  didAuth
 } from '../../../test/vc-api/credential.service.spec.data';
-import { challenge, did, key, didDoc } from '../../../test/vc-api/credential.service.spec.key';
+import { did, key, didDoc } from '../../../test/vc-api/credential.service.spec.key';
 import { ProvePresentationOptionsDto } from './dtos/prove-presentation-options.dto';
 import { CredoService } from '../../credo/credo.service';
 import { mockCredoService } from '../../credo/__mocks__/credo.service';
 import { CredoModule } from '../../credo/credo.module';
-import {
-  JsonTransformer,
-  W3cCredential,
-  W3cJsonLdVerifiableCredential,
-  W3cJsonLdVerifiablePresentation,
-  W3cPresentation
-} from '@credo-ts/core';
+import { JsonTransformer, W3cJsonLdVerifiableCredential, W3cJsonLdVerifiablePresentation } from '@credo-ts/core';
+
 describe('CredentialsService', () => {
   let service: CredentialsService;
   let didService: DIDService;
@@ -69,7 +64,7 @@ describe('CredentialsService', () => {
     didService = module.get<DIDService>(DIDService);
     keyService = module.get<KeyService>(KeyService);
     service = module.get<CredentialsService>(CredentialsService);
-    verificationMethod = await keyToVerificationMethod('key', JSON.stringify(key));
+    verificationMethod = didDoc.verificationMethod[0].id;
   });
 
   afterEach(async () => {
@@ -170,9 +165,6 @@ describe('CredentialsService', () => {
       created: rebeamVerifiablePresentation.proof.created,
       challenge: 'some-challenge'
     };
-    jest.spyOn(didService, 'getDID').mockResolvedValueOnce(didDoc);
-    jest.spyOn(didService, 'getVerificationMethod').mockResolvedValueOnce(didDoc.verificationMethod[0]);
-    jest.spyOn(keyService, 'getPrivateKeyFromKeyId').mockResolvedValueOnce(key);
     jest
       .spyOn(mockCredoService.agent.w3cCredentials, 'signPresentation')
       .mockResolvedValue(
@@ -192,6 +184,28 @@ describe('CredentialsService', () => {
     const expectedVpCopy = JSON.parse(JSON.stringify(rebeamVerifiablePresentation));
     delete expectedVpCopy.proof.jws;
     expect(vp).toEqual(expectedVpCopy);
+  });
+
+  it('should be able to generate DIDAuth', async () => {
+    jest
+      .spyOn(mockCredoService.agent.w3cCredentials, 'signPresentation')
+      .mockResolvedValue(
+        JsonTransformer.fromJSON(didAuth.signedPresentation, W3cJsonLdVerifiablePresentation, {validate: false})
+      );
+    const vp = await service.didAuthenticate(didAuth.presentation);
+    expect(vp.holder).toEqual(did);
+    expect(vp.proof).toBeDefined();
+    const verifyOptions: VerifyOptionsDto = {
+      proofPurpose: ProofPurpose.authentication,
+      verificationMethod,
+      challenge: 'some-challenge'
+    };
+    jest
+      .spyOn(mockCredoService.agent.w3cCredentials, 'verifyPresentation')
+      .mockResolvedValue({ isValid: true });
+    const authVerification = await service.verifyPresentation(vp, verifyOptions);
+    expect(authVerification.verified).toBeTruthy();
+    expect(authVerification.errors).toHaveLength(0);
   });
 
   it('should be able to verify a credential', async () => {

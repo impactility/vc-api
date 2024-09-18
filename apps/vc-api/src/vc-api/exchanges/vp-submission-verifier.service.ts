@@ -6,7 +6,6 @@
 import { Injectable } from '@nestjs/common';
 import { ProofPurpose, IPresentationDefinition, PEX, IPresentation } from '@sphereon/pex';
 import { CredentialsService } from '../credentials/credentials.service';
-import { VerificationResult } from '../credentials/types/verification-result';
 import { VpRequestEntity } from './entities/vp-request.entity';
 import { SubmissionVerifier } from './types/submission-verifier';
 import { VerifiablePresentation } from './types/verifiable-presentation';
