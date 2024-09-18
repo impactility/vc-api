@@ -33,7 +33,7 @@ export class VpSubmissionVerifierService implements SubmissionVerifier {
     if (proofVerifiactionResult.error) {
       errors.push(proofVerifiactionResult.error.message);
     } else {
-      errors.push(...proofVerifiactionResult.errors);
+      errors.push(proofVerifiactionResult.errors);
     }
     return {
       errors: [...errors, ...vpRequestValidationErrors],
