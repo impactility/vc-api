@@ -128,12 +128,14 @@ export class CredentialsService implements CredentialVerifier {
       (await this.getVerificationMethodForDid(provePresentationDto.presentation.holder)).id;
 
     const signPresentationOption: W3cSignPresentationOptions<ClaimFormat.LdpVp> = {
-      presentation: JsonTransformer.fromJSON(provePresentationDto.presentation, W3cPresentation),
+      presentation: JsonTransformer.fromJSON(provePresentationDto.presentation, W3cPresentation, {
+        validate: false
+      }),
       challenge: provePresentationDto.options.challenge,
       verificationMethod: verificationMethodId,
       format: ClaimFormat.LdpVp,
       proofType: 'Ed25519Signature2018',
-      proofPurpose: provePresentationDto.options.proofPurpose
+      proofPurpose: provePresentationDto.options.proofPurpose,
     };
     const w3cVerifiablePresentation =
       await this.credoService.agent.w3cCredentials.signPresentation<ClaimFormat.LdpVp>(
@@ -151,15 +153,29 @@ export class CredentialsService implements CredentialVerifier {
     if (authenticateDto.options.proofPurpose !== ProofPurpose.authentication) {
       throw new BadRequestException('proof purpose must be authentication for DIDAuth');
     }
-    const didDoc: DIDDocument = await this.didService.getDID(authenticateDto.did);
+    // const didDoc: DIDDocument = await this.didService.getDID(authenticateDto.did);
 
-    const key = await this.keyService.getPrivateKeyFromKeyId(didDoc.verificationMethod[0].publicKeyBase58); //await this.getKeyForVerificationMethod(verificationMethodId);
-    const proofOptions = this.mapVcApiPresentationOptionsToSpruceIssueOptions(authenticateDto.options);
+    // const key = await this.keyService.getPrivateKeyFromKeyId(didDoc.verificationMethod[0].publicKeyBase58); //await this.getKeyForVerificationMethod(verificationMethodId);
+    // const proofOptions = this.mapVcApiPresentationOptionsToSpruceIssueOptions(authenticateDto.options);
 
-    return didKitExecutor<VerifiablePresentationDto>(
-      () => DIDAuth(authenticateDto.did, JSON.stringify(proofOptions), JSON.stringify(key)),
-      'DIDAuth'
-    );
+    const signPresentationDto: ProvePresentationDto = {
+      presentation: {
+        "@context": [
+          "https://www.w3.org/2018/credentials/v1"
+        ],
+        type: ["VerifiablePresentation", "DidAuth"],
+        holder: authenticateDto.did
+      },
+      options: authenticateDto.options
+    };
+
+    const signed = await this.provePresentation(signPresentationDto);
+
+    return signed;
+    // return didKitExecutor<VerifiablePresentationDto>(
+    //   () => DIDAuth(authenticateDto.did, JSON.stringify(proofOptions), JSON.stringify(key)),
+    //   'DIDAuth'
+    // );
   }
 
   async verifyPresentation(
@@ -167,8 +183,13 @@ export class CredentialsService implements CredentialVerifier {
     options: VerifyOptionsDto
   ): Promise<VerificationResultDto> {
     const w3cVerifyPresentationOptions: W3cVerifyPresentationOptions = {
-      presentation: JsonTransformer.fromJSON(vp, W3cJsonLdVerifiablePresentation),
-      challenge: options.challenge
+      presentation: JsonTransformer.fromJSON(vp, W3cJsonLdVerifiablePresentation, {
+        // Credo is expecting the the verifiableCredential property in a VP
+        // However, this property is optional in both the v1.1 and v2 VC data models
+        // For example, it isn't present if the VP is only for authentication
+        validate: !(vp.verifiableCredential === undefined)
+      }),
+      challenge: options.challenge ?? vp.proof.challenge
     };
     const verifyPresentation = await this.credoService.agent.w3cCredentials.verifyPresentation(
       w3cVerifyPresentationOptions
