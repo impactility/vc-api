@@ -71,7 +71,7 @@ export const residentCardExchangeSuite = () => {
     const transaction = await walletClient.getExchangeTransaction(exchange.getExchangeId(), transactionId);
 
     // As the issuer, check the result of the transaction verification
-    expect(transaction.presentationSubmission.verificationResult.checks).toContain('proof');
+    expect(transaction.presentationSubmission.verificationResult.verified).toBeTruthy();
     expect(transaction.presentationSubmission.verificationResult.errors).toHaveLength(0);
 
     // As the issuer, create a presentation to provide the credential to the holder

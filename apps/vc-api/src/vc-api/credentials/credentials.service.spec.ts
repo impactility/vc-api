@@ -160,7 +160,7 @@ describe('CredentialsService', () => {
       verificationMethod,
       challenge: 'some-challenge'
     });
-    expect(verificationResult.isValid).toBeTruthy();
+    expect(verificationResult.verified).toBeTruthy();
   });
 
   it('should prove a vp', async () => {
@@ -199,7 +199,7 @@ describe('CredentialsService', () => {
       .spyOn(mockCredoService.agent.w3cCredentials, 'verifyCredential')
       .mockResolvedValue({ isValid: true });
     const result = await service.verifyCredential(energyContractVerifiableCredential);
-    const expectedResult = { isValid: true };
+    const expectedResult = { verified: true, errors: [], warnings: [] };
     expect(result).toEqual(expectedResult);
   });
 
@@ -213,7 +213,7 @@ describe('CredentialsService', () => {
       .spyOn(mockCredoService.agent.w3cCredentials, 'verifyPresentation')
       .mockResolvedValue({ isValid: true });
     const result = await service.verifyPresentation(rebeamVerifiablePresentation, verifyOptions);
-    const expectedResult = { isValid: true };
+    const expectedResult = { verified: true, errors: [], warnings: [] };
     expect(result).toEqual(expectedResult);
   });
 });

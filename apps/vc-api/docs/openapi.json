@@ -812,18 +812,14 @@
         },
         "required": ["verifiableCredential"]
       },
-      "Error": { "type": "object", "properties": {} },
       "VerificationResultDto": {
         "type": "object",
         "properties": {
-          "checks": { "description": "The checks performed", "type": "array", "items": { "type": "string" } },
           "warnings": { "description": "Warnings", "type": "array", "items": { "type": "string" } },
           "errors": { "description": "Errors", "type": "array", "items": { "type": "string" } },
-          "error": { "description": "Error", "allOf": [{ "$ref": "#/components/schemas/Error" }] },
-          "isValid": { "type": "boolean", "description": "Is the credential valid" },
-          "validations": { "type": "object", "description": "The validations performed" }
+          "verified": { "type": "boolean", "description": "Is the credential valid" }
         },
-        "required": ["checks", "warnings", "errors", "error", "isValid", "validations"]
+        "required": ["warnings", "errors", "verified"]
       },
       "ProofPurpose": {
         "type": "string",

@@ -107,7 +107,7 @@ export class VcApiController {
       verifyCredentialDto.verifiableCredential
     );
 
-    if (verificationResult.error) {
+    if (verificationResult.errors.length) {
       throw new BadRequestException(verificationResult);
     }
 
