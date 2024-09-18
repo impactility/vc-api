@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { VerificationResult } from '../../credentials/types/verification-result';
+import { VerificationResult } from '../types/exchange-verification-result';
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 import { VerifiablePresentation } from '../types/verifiable-presentation';
 
