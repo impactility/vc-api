@@ -38,10 +38,7 @@ import { transformVerificationResult } from './utils/verification-result-transfo
  */
 @Injectable()
 export class CredentialsService implements CredentialVerifier {
-  constructor(
-    private didService: DIDService,
-    private credoService: CredoService
-  ) {}
+  constructor(private didService: DIDService, private credoService: CredoService) {}
 
   async issueCredential(issueDto: IssueCredentialDto): Promise<VerifiableCredentialDto> {
     const verificationMethod = await this.getVerificationMethodForDid(
@@ -104,9 +101,7 @@ export class CredentialsService implements CredentialVerifier {
       (await this.getVerificationMethodForDid(provePresentationDto.presentation.holder)).id;
 
     const signPresentationOption: W3cSignPresentationOptions<ClaimFormat.LdpVp> = {
-      presentation: JsonTransformer.fromJSON(provePresentationDto.presentation, W3cPresentation, {
-        validate: false
-      }),
+      presentation: this.transformToCredoPresentation(provePresentationDto.presentation, W3cPresentation),
       challenge: provePresentationDto.options.challenge,
       verificationMethod: verificationMethodId,
       format: ClaimFormat.LdpVp,
@@ -148,12 +143,7 @@ export class CredentialsService implements CredentialVerifier {
     options: VerifyOptionsDto
   ): Promise<VerificationResultDto> {
     const w3cVerifyPresentationOptions: W3cVerifyPresentationOptions = {
-      presentation: JsonTransformer.fromJSON(vp, W3cJsonLdVerifiablePresentation, {
-        // Credo is expecting the the verifiableCredential property in a VP
-        // However, this property is optional in both the v1.1 and v2 VC data models
-        // For example, it isn't present if the VP is only for authentication
-        validate: !(vp.verifiableCredential === undefined)
-      }),
+      presentation: this.transformToCredoPresentation(vp, W3cJsonLdVerifiablePresentation),
       challenge: options.challenge ?? vp.proof.challenge
     };
     const verifyPresentation = await this.credoService.agent.w3cCredentials.verifyPresentation(
@@ -170,5 +160,23 @@ export class CredentialsService implements CredentialVerifier {
     }
 
     return didDoc.verificationMethod[0];
+  }
+
+  /**
+   * Credo is expecting the the verifiableCredential property in a presentation.
+   * However, this property is optional in both the v1.1 and v2 VC data models.
+   * For example, it isn't present if the presentation is only for authentication.
+   * Credo issue to resolve underlying cause: https://github.com/openwallet-foundation/credo-ts/issues/2038
+   * @param presentation presentation to transform to a Credo type
+   * @param targetClass the desired Credo type
+   * @returns instance of targetClass
+   */
+  private transformToCredoPresentation<T extends W3cPresentation>(
+    presentation,
+    targetClass: new (...args: unknown[]) => T
+  ): T {
+    return JsonTransformer.fromJSON(presentation, targetClass, {
+      validate: !(presentation.verifiableCredential === undefined)
+    });
   }
 }
