@@ -356,8 +356,7 @@ export const didAuth = {
       'https://www.w3.org/2018/credentials/v1'
     ],
     type: [
-      'VerifiablePresentation',
-      'DidAuth'
+      'VerifiablePresentation'
     ],
     holder: 'did:key:z6MkoB84PJkXzFpbqtfYV5WqBKHCSDf7A1SeepwzvE36QvCF',
     proof: {

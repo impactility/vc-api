@@ -4,7 +4,6 @@
  */
 import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { DIDService } from '../../did/did.service';
-import { KeyService } from '../../key/key.service';
 import { IssueCredentialDto } from './dtos/issue-credential.dto';
 import { VerifiableCredentialDto } from './dtos/verifiable-credential.dto';
 import { VerifiablePresentationDto } from './dtos/verifiable-presentation.dto';
@@ -61,9 +60,8 @@ export class CredentialsService implements CredentialVerifier {
     const w3cVerifyCredentialOptions: W3cVerifyCredentialOptions<ClaimFormat.LdpVc> = {
       credential: W3cJsonLdVerifiableCredential.fromJson(vc)
     };
-    const obj = { ...w3cVerifyCredentialOptions };
     const verifyCredential: W3cVerifyCredentialResult =
-      await this.credoService.agent.w3cCredentials.verifyCredential(obj as any);
+      await this.credoService.agent.w3cCredentials.verifyCredential(w3cVerifyCredentialOptions as any);
     return transformVerificationResult(verifyCredential);
   }
 
@@ -85,13 +83,6 @@ export class CredentialsService implements CredentialVerifier {
     }
     const presentation = pex.presentationFrom(presentationDefinition, verifiableCredential);
 
-    const submissionContextUri = 'https://identity.foundation/presentation-exchange/submission/v1';
-
-    presentation['@context'] = Array.isArray(presentation['@context'])
-      ? presentation['@context']
-      : [presentation['@context']];
-
-    presentation['@context'] = presentation['@context'].filter((c) => c !== submissionContextUri);
     return presentation as PresentationDto;
   }
 
@@ -127,7 +118,7 @@ export class CredentialsService implements CredentialVerifier {
     const signPresentationDto: ProvePresentationDto = {
       presentation: {
         '@context': ['https://www.w3.org/2018/credentials/v1'],
-        type: ['VerifiablePresentation', 'DidAuth'],
+        type: ['VerifiablePresentation'],
         holder: authenticateDto.did
       },
       options: authenticateDto.options
