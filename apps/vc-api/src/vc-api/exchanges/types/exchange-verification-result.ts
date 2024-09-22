@@ -8,7 +8,7 @@
  * https://w3c-ccg.github.io/vc-api/verifier.html
  */
 
-export interface VerificationResult {
+export interface ExchangeVerificationResult {
   /**	  /**
    * verified
    */
