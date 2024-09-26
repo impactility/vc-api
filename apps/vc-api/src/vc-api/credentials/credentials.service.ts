@@ -56,16 +56,14 @@ export class CredentialsService implements CredentialVerifier {
     return w3cVerifiableCredential.toJson() as VerifiableCredentialDto;
   }
 
-  async verifyCredential(
-    vc: VerifiableCredentialDto
-  ): Promise<VerificationResultDto> {
+  async verifyCredential(vc: VerifiableCredentialDto): Promise<VerificationResultDto> {
     const w3cVerifyCredentialOptions: W3cVerifyCredentialOptions<ClaimFormat.LdpVc> = {
       credential: W3cJsonLdVerifiableCredential.fromJson(vc)
     };
 
     // Using "any" until Credo types are fixed https://github.com/openwallet-foundation/credo-ts/issues/2043
-    const verifyCredential: W3cVerifyCredentialResult = 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const verifyCredential: W3cVerifyCredentialResult =
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await this.credoService.agent.w3cCredentials.verifyCredential(w3cVerifyCredentialOptions as any);
     return transformVerificationResult(verifyCredential);
   }

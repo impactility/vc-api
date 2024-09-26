@@ -1,19 +1,19 @@
-import { AskarModule, AskarWallet } from "@credo-ts/askar";
-import { Agent, InitConfig, SigningProviderRegistry, ConsoleLogger, WalletConfig } from "@credo-ts/core";
-import { agentDependencies } from "@credo-ts/node";
-import { ariesAskar } from "@hyperledger/aries-askar-nodejs";
+import { AskarModule, AskarWallet } from '@credo-ts/askar';
+import { Agent, InitConfig, SigningProviderRegistry, ConsoleLogger, WalletConfig } from '@credo-ts/core';
+import { agentDependencies } from '@credo-ts/node';
+import { ariesAskar } from '@hyperledger/aries-askar-nodejs';
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 
 @Injectable()
-export class CredoService implements OnModuleInit, OnModuleDestroy{
+export class CredoService implements OnModuleInit, OnModuleDestroy {
   private readonly walletConfig: WalletConfig = {
     id: process.env['ASKAR_WALLET_ID'],
     key: process.env['ASKAR_WALLET_KEY'],
     storage: {
-      type: process.env['ASKAR_WALLET_DB_TYPE'],
-    },
+      type: process.env['ASKAR_WALLET_DB_TYPE']
+    }
   };
-  private readonly askarAgent: Agent<{ askar: AskarModule; }>;
+  private readonly askarAgent: Agent<{ askar: AskarModule }>;
   private readonly askarWallet: AskarWallet;
   private initialized = false;
 
@@ -21,7 +21,7 @@ export class CredoService implements OnModuleInit, OnModuleDestroy{
     // Initialize agent and wallet synchronously
     const config: InitConfig = {
       label: process.env['ASKAR_LABEL'],
-      walletConfig: this.walletConfig,
+      walletConfig: this.walletConfig
     };
 
     // Create the agent
@@ -30,16 +30,16 @@ export class CredoService implements OnModuleInit, OnModuleDestroy{
       dependencies: agentDependencies,
       modules: {
         askar: new AskarModule({
-          ariesAskar,
-        }),
-      },
+          ariesAskar
+        })
+      }
     });
 
     // Create the wallet
     this.askarWallet = new AskarWallet(
       new ConsoleLogger(),
       new agentDependencies.FileSystem(),
-      new SigningProviderRegistry([]),
+      new SigningProviderRegistry([])
     );
   }
 
@@ -60,7 +60,7 @@ export class CredoService implements OnModuleInit, OnModuleDestroy{
   // Accessor for the agent
   public get agent(): Agent<{ askar: AskarModule }> {
     if (!this.initialized) {
-      throw new Error("Credo Agent is not initialized yet.");
+      throw new Error('Credo Agent is not initialized yet.');
     }
     return this.askarAgent;
   }
@@ -68,7 +68,7 @@ export class CredoService implements OnModuleInit, OnModuleDestroy{
   // Accessor for the wallet
   public get wallet(): AskarWallet {
     if (!this.initialized) {
-      throw new Error("Credo wallet is not initialized yet.");
+      throw new Error('Credo wallet is not initialized yet.');
     }
     return this.askarWallet;
   }

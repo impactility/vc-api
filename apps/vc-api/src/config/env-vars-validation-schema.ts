@@ -12,5 +12,5 @@ export const envVarsValidationSchema = Joi.object({
   ASKAR_LABEL: Joi.string().default('vc-api-agent'),
   ASKAR_WALLET_ID: Joi.string().default('vc-api-wallet'),
   ASKAR_WALLET_KEY: Joi.string().default('vc-api-wallet-key-0001'),
-  ASKAR_WALLET_DB_TYPE: Joi.string().default('sqlite'),
+  ASKAR_WALLET_DB_TYPE: Joi.string().default('sqlite')
 });
