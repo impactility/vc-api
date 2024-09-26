@@ -28,7 +28,11 @@ import { ProvePresentationOptionsDto } from './dtos/prove-presentation-options.d
 import { CredoService } from '../../credo/credo.service';
 import { mockCredoService } from '../../credo/__mocks__/credo.service';
 import { CredoModule } from '../../credo/credo.module';
-import { JsonTransformer, W3cJsonLdVerifiableCredential, W3cJsonLdVerifiablePresentation } from '@credo-ts/core';
+import {
+  JsonTransformer,
+  W3cJsonLdVerifiableCredential,
+  W3cJsonLdVerifiablePresentation
+} from '@credo-ts/core';
 
 describe('CredentialsService', () => {
   let service: CredentialsService;
@@ -187,11 +191,11 @@ describe('CredentialsService', () => {
   });
 
   it('should be able to generate DIDAuth', async () => {
-    jest
-      .spyOn(mockCredoService.agent.w3cCredentials, 'signPresentation')
-      .mockResolvedValue(
-        JsonTransformer.fromJSON(didAuth.signedPresentation, W3cJsonLdVerifiablePresentation, {validate: false})
-      );
+    jest.spyOn(mockCredoService.agent.w3cCredentials, 'signPresentation').mockResolvedValue(
+      JsonTransformer.fromJSON(didAuth.signedPresentation, W3cJsonLdVerifiablePresentation, {
+        validate: false
+      })
+    );
     const vp = await service.didAuthenticate(didAuth.presentation);
     expect(vp.holder).toEqual(did);
     expect(vp.proof).toBeDefined();

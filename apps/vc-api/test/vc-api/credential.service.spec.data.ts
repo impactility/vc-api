@@ -346,21 +346,19 @@ export const didAuth = {
   presentation: {
     did: 'did:key:z6MkoB84PJkXzFpbqtfYV5WqBKHCSDf7A1SeepwzvE36QvCF',
     options: {
-      verificationMethod: 'did:key:z6MkoB84PJkXzFpbqtfYV5WqBKHCSDf7A1SeepwzvE36QvCF#z6MkoB84PJkXzFpbqtfYV5WqBKHCSDf7A1SeepwzvE36QvCF',
+      verificationMethod:
+        'did:key:z6MkoB84PJkXzFpbqtfYV5WqBKHCSDf7A1SeepwzvE36QvCF#z6MkoB84PJkXzFpbqtfYV5WqBKHCSDf7A1SeepwzvE36QvCF',
       proofPurpose: 'authentication',
-      challenge: 'some-challenge',
+      challenge: 'some-challenge'
     }
   } as AuthenticateDto,
   signedPresentation: {
-    '@context': [
-      'https://www.w3.org/2018/credentials/v1'
-    ],
-    type: [
-      'VerifiablePresentation'
-    ],
+    '@context': ['https://www.w3.org/2018/credentials/v1'],
+    type: ['VerifiablePresentation'],
     holder: 'did:key:z6MkoB84PJkXzFpbqtfYV5WqBKHCSDf7A1SeepwzvE36QvCF',
     proof: {
-      verificationMethod: 'did:key:z6MkoB84PJkXzFpbqtfYV5WqBKHCSDf7A1SeepwzvE36QvCF#z6MkoB84PJkXzFpbqtfYV5WqBKHCSDf7A1SeepwzvE36QvCF',
+      verificationMethod:
+        'did:key:z6MkoB84PJkXzFpbqtfYV5WqBKHCSDf7A1SeepwzvE36QvCF#z6MkoB84PJkXzFpbqtfYV5WqBKHCSDf7A1SeepwzvE36QvCF',
       type: 'Ed25519Signature2018',
       created: '2024-09-18T17:55:18Z',
       proofPurpose: 'authentication',

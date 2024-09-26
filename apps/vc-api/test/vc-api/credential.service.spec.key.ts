@@ -11,7 +11,7 @@ export const key = {
   kid: 'zWME913jdYrILuYD-ot-jDbmzqz34HqlCUZ6CMdJnyo'
 };
 
-export const did = "did:key:z6MkoB84PJkXzFpbqtfYV5WqBKHCSDf7A1SeepwzvE36QvCF";
+export const did = 'did:key:z6MkoB84PJkXzFpbqtfYV5WqBKHCSDf7A1SeepwzvE36QvCF';
 export const didDoc = {
   id: 'did:key:z6MkoB84PJkXzFpbqtfYV5WqBKHCSDf7A1SeepwzvE36QvCF',
   verificationMethod: [
