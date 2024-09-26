@@ -3,24 +3,27 @@ import { Agent, InitConfig, SigningProviderRegistry, ConsoleLogger, WalletConfig
 import { agentDependencies } from '@credo-ts/node';
 import { ariesAskar } from '@hyperledger/aries-askar-nodejs';
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class CredoService implements OnModuleInit, OnModuleDestroy {
-  private readonly walletConfig: WalletConfig = {
-    id: process.env['ASKAR_WALLET_ID'],
-    key: process.env['ASKAR_WALLET_KEY'],
-    storage: {
-      type: process.env['ASKAR_WALLET_DB_TYPE']
-    }
-  };
+  private readonly walletConfig: WalletConfig;
   private readonly askarAgent: Agent<{ askar: AskarModule }>;
   private readonly askarWallet: AskarWallet;
   private initialized = false;
 
-  constructor() {
+  constructor(private configService: ConfigService) {
+    this.walletConfig = {
+      id: this.configService.get<string>('ASKAR_WALLET_ID'),
+      key: this.configService.get<string>('ASKAR_WALLET_KEY'),
+      storage: {
+        type: this.configService.get<string>('ASKAR_WALLET_DB_TYPE')
+      }
+    };
+
     // Initialize agent and wallet synchronously
     const config: InitConfig = {
-      label: process.env['ASKAR_LABEL'],
+      label: this.configService.get<string>('ASKAR_LABEL'),
       walletConfig: this.walletConfig
     };
 
