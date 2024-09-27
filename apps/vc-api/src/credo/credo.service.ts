@@ -14,16 +14,16 @@ export class CredoService implements OnModuleInit, OnModuleDestroy {
 
   constructor(private configService: ConfigService) {
     this.walletConfig = {
-      id: this.configService.get<string>('ASKAR_WALLET_ID'),
-      key: this.configService.get<string>('ASKAR_WALLET_KEY'),
+      id: this.configService.get<string>('CREDO_WALLET_ID'),
+      key: this.configService.get<string>('CREDO_WALLET_KEY'),
       storage: {
-        type: this.configService.get<string>('ASKAR_WALLET_DB_TYPE')
+        type: this.configService.get<string>('CREDO_WALLET_DB_TYPE')
       }
     };
 
     // Initialize agent and wallet synchronously
     const config: InitConfig = {
-      label: this.configService.get<string>('ASKAR_LABEL'),
+      label: this.configService.get<string>('CREDO_LABEL'),
       walletConfig: this.walletConfig
     };
 
