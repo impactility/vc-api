@@ -594,6 +594,44 @@
         },
         "tags": ["vc-api"]
       }
+    },
+    "/v1/vc-api/workflows": {
+      "post": {
+        "operationId": "VcApiController_createWorkflow",
+        "summary": "",
+        "description": "Allows the creation of a new exchange by providing the credential query and interaction endpoints\nA NON-STANDARD endpoint currently.\n\nSimilar to https://gataca-io.github.io/vui-core/#/Presentations/post_api_v2_presentations",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/CreateWorkflowRequestDto" } }
+          }
+        },
+        "responses": {
+          "201": { "description": "" },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/BadRequestErrorResponseDto" } }
+            }
+          },
+          "409": {
+            "description": "",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ConflictErrorResponseDto" } }
+            }
+          },
+          "500": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/InternalServerErrorResponseDto" }
+              }
+            }
+          }
+        },
+        "tags": ["vc-api"]
+      }
     }
   },
   "info": { "title": "VC-API", "description": "Sample VC-API", "version": "0.1", "contact": {} },
@@ -1172,6 +1210,32 @@
           }
         },
         "required": ["result"]
+      },
+      "Steps": { "type": "object", "properties": {} },
+      "WorkflowConfig": {
+        "type": "object",
+        "properties": {
+          "steps": {
+            "description": "One or more steps required to complete an exchange on the workflow.",
+            "allOf": [{ "$ref": "#/components/schemas/Steps" }]
+          },
+          "initialStep": { "type": "string", "description": "The initial step of the workflow." },
+          "id": {
+            "type": "string",
+            "description": "The ID that will be used for the created workflow. Passing an ID is OPTIONAL."
+          }
+        },
+        "required": ["steps", "initialStep", "id"]
+      },
+      "CreateWorkflowRequestDto": {
+        "type": "object",
+        "properties": {
+          "config": {
+            "description": "Configuration for a workflow",
+            "allOf": [{ "$ref": "#/components/schemas/WorkflowConfig" }]
+          }
+        },
+        "required": ["config"]
       }
     }
   }
