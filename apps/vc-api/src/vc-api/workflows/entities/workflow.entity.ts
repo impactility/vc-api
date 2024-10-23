@@ -30,7 +30,6 @@ export class WorkflowEntity {
   @Column('simple-json')
   workflowSteps: Steps;
 
-
   /**
    * Create transaction associated with this exchange.
    *

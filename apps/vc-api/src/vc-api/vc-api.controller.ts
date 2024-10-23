@@ -65,7 +65,11 @@ import { WorkflowService } from './workflows/workflow.service';
 export class VcApiController {
   private readonly logger = new Logger(VcApiController.name, { timestamp: true });
 
-  constructor(private vcApiService: CredentialsService, private exchangeService: ExchangeService, private workflowService: WorkflowService) {}
+  constructor(
+    private vcApiService: CredentialsService,
+    private exchangeService: ExchangeService,
+    private workflowService: WorkflowService
+  ) {}
 
   /**
    * @param issueDto credential without a proof, and, proof options
