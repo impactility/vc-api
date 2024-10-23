@@ -51,6 +51,8 @@ import { NotFoundErrorResponseDto } from '../dtos/not-found-error-response.dto';
 import { InternalServerErrorResponseDto } from '../dtos/internal-server-error-response.dto';
 import { IPresentationDefinition } from '@sphereon/pex';
 import { AuthenticateDto } from './credentials/dtos/authenticate.dto';
+import { CreateWorkflowRequestDto } from './workflows/dtos/create-workflow-request.dto';
+import { WorkflowService } from './workflows/workflow.service';
 
 /**
  * VcApi API conforms to W3C vc-api
@@ -63,7 +65,7 @@ import { AuthenticateDto } from './credentials/dtos/authenticate.dto';
 export class VcApiController {
   private readonly logger = new Logger(VcApiController.name, { timestamp: true });
 
-  constructor(private vcApiService: CredentialsService, private exchangeService: ExchangeService) {}
+  constructor(private vcApiService: CredentialsService, private exchangeService: ExchangeService, private workflowService: WorkflowService) {}
 
   /**
    * @param issueDto credential without a proof, and, proof options
@@ -362,5 +364,24 @@ export class VcApiController {
     }
 
     return result;
+  }
+
+  /**
+   * TODO: Needs to have special authorization
+   * @param exchangeDefinitionDto
+   * @returns
+   */
+  @Post('/workflows')
+  @ApiOperation({
+    description:
+      'Allows the creation of a new exchange by providing the credential query and interaction endpoints\n' +
+      'A NON-STANDARD endpoint currently.\n\n' +
+      'Similar to https://gataca-io.github.io/vui-core/#/Presentations/post_api_v2_presentations'
+  })
+  @ApiBody({ type: CreateWorkflowRequestDto })
+  @ApiCreatedResponse() // TODO: define response DTO
+  @ApiConflictResponse({ type: ConflictErrorResponseDto })
+  async createWorkflow(@Body() createWorkflowRequestDto: CreateWorkflowRequestDto) {
+    return this.workflowService.createWorkflow(createWorkflowRequestDto);
   }
 }
