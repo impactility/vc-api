@@ -5,7 +5,8 @@
 
 import { Column, Entity } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
-import { Steps, WorkflowConfig } from '../dtos/create-workflow-request.dto';
+import { Steps, WorkflowConfigDto } from '../dtos/create-workflow-request.dto';
+import { WorkflowStepDefinitionDto } from '../dtos/workflow-step-definition.dto';
 
 /**
  * A TypeOrm entity representing an exchange
@@ -19,9 +20,10 @@ import { Steps, WorkflowConfig } from '../dtos/create-workflow-request.dto';
  */
 @Entity()
 export class WorkflowEntity {
-  constructor(workflowConfig: WorkflowConfig) {
+  constructor(workflowConfig: WorkflowConfigDto) {
     this.workflowId = workflowConfig?.id ?? uuidv4();
     this.workflowSteps = workflowConfig?.steps;
+    this.initialStep = workflowConfig?.initialStep;
   }
 
   @Column('text', { primary: true })
@@ -30,17 +32,16 @@ export class WorkflowEntity {
   @Column('simple-json')
   workflowSteps: Steps;
 
-  /**
-   * Create transaction associated with this exchange.
-   *
-   * Transactions are created by exchange (exchange is the aggregate root) because the exchange may want to enforce invariants such as
-   * "This exchange may only have a single transaction" (i.e. see oneTimeTransactionId property)
-   *
-   * @param baseUrl The baseUrl to use for any interaction services
-   * @returns
-   */
+  @Column('text')
+  initialStep: string;
 
-  public createExchange() {
-    throw new Error('Not implemented');
+  /**
+   * Get the first step in a workflow.
+   * This can then be used to create a new exchange based on this workflow.
+   *
+   * @returns the first step in the workflow
+   */
+  public getFirstStep(): WorkflowStepDefinitionDto {
+    return this.workflowSteps[this.initialStep];
   }
 }

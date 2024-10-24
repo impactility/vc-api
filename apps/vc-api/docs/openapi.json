@@ -1212,7 +1212,7 @@
         "required": ["result"]
       },
       "Steps": { "type": "object", "properties": {} },
-      "WorkflowConfig": {
+      "WorkflowConfigDto": {
         "type": "object",
         "properties": {
           "steps": {
@@ -1232,7 +1232,7 @@
         "properties": {
           "config": {
             "description": "Configuration for a workflow",
-            "allOf": [{ "$ref": "#/components/schemas/WorkflowConfig" }]
+            "allOf": [{ "$ref": "#/components/schemas/WorkflowConfigDto" }]
           }
         },
         "required": ["config"]

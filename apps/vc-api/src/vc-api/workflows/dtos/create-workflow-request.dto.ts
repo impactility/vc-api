@@ -1,13 +1,13 @@
-import { IsString, IsObject, ValidateNested, IsOptional } from 'class-validator';
+import { IsString, ValidateNested, IsOptional } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { WorkflowStepDto } from './workflow-step.dto';
+import { WorkflowStepDefinitionDto } from './workflow-step-definition.dto';
 
 export class Steps {
-  [key: string]: WorkflowStepDto;
+  [key: string]: WorkflowStepDefinitionDto;
 }
 
-export class WorkflowConfig {
+export class WorkflowConfigDto {
   @ApiProperty({
     description: 'One or more steps required to complete an exchange on the workflow.',
     type: Steps
@@ -33,9 +33,9 @@ export class WorkflowConfig {
 export class CreateWorkflowRequestDto {
   @ApiProperty({
     description: 'Configuration for a workflow',
-    type: WorkflowConfig
+    type: WorkflowConfigDto
   })
   @ValidateNested()
-  @Type(() => WorkflowConfig)
-  config: WorkflowConfig;
+  @Type(() => WorkflowConfigDto)
+  config: WorkflowConfigDto;
 }
