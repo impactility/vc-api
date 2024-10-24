@@ -3,18 +3,18 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { WorkflowStepDefinitionDto } from './workflow-step-definition.dto';
 
-export class Steps {
+export class StepDefinitions {
   [key: string]: WorkflowStepDefinitionDto;
 }
 
 export class WorkflowConfigDto {
   @ApiProperty({
     description: 'One or more steps required to complete an exchange on the workflow.',
-    type: Steps
+    type: StepDefinitions
   })
   @ValidateNested()
-  @Type(() => Steps)
-  steps: Steps;
+  @Type(() => StepDefinitions)
+  steps: StepDefinitions;
 
   @ApiProperty({
     description: 'The initial step of the workflow.'

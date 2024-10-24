@@ -5,7 +5,7 @@
 
 import { Column, Entity } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
-import { Steps, WorkflowConfigDto } from '../dtos/create-workflow-request.dto';
+import { StepDefinitions, WorkflowConfigDto } from '../dtos/create-workflow-request.dto';
 import { WorkflowStepDefinitionDto } from '../dtos/workflow-step-definition.dto';
 
 /**
@@ -30,7 +30,7 @@ export class WorkflowEntity {
   workflowId: string;
 
   @Column('simple-json')
-  workflowSteps: Steps;
+  workflowSteps: StepDefinitions;
 
   @Column('text')
   initialStep: string;
@@ -41,7 +41,9 @@ export class WorkflowEntity {
    *
    * @returns the first step in the workflow
    */
-  public getFirstStep(): WorkflowStepDefinitionDto {
+  public getInitialStep(): WorkflowStepDefinitionDto {
     return this.workflowSteps[this.initialStep];
   }
+
+  // public getNextStep(currentStep: stepId): WorkflowStepDefinitionDto {
 }
