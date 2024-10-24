@@ -14,7 +14,7 @@ export class WorkflowService {
 
   public async createWorkflow(createWorkflowRequestDto: CreateWorkflowRequestDto): Promise<string> {
     if (await this.workflowRepository.findOneBy({ workflowId: createWorkflowRequestDto.config.id })) {
-      throw new ConflictException(`exchangeId='${createWorkflowRequestDto.config.id}' already exists`);
+      throw new ConflictException(`workflowId='${createWorkflowRequestDto.config.id}' already exists`);
     }
 
     const workflow = new WorkflowEntity(createWorkflowRequestDto.config);
