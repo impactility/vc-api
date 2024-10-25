@@ -20,7 +20,7 @@ import { PresentationSubmissionEntity } from './exchanges/entities/presentation-
 import { VpSubmissionVerifierService } from './exchanges/vp-submission-verifier.service';
 import { WorkflowService } from './workflows/workflow.service';
 import { WorkflowEntity } from './workflows/entities/workflow.entity';
-import { WorkflowStepEntity } from './workflows/entities/workflow-step.entity';
+import { ExchangeStep } from './workflows/types/exchange-step';
 
 @Module({
   imports: [
@@ -33,7 +33,7 @@ import { WorkflowStepEntity } from './workflows/entities/workflow-step.entity';
       PresentationReviewEntity,
       PresentationSubmissionEntity,
       WorkflowEntity,
-      WorkflowStepEntity
+      ExchangeStep
     ]),
     ConfigModule,
     HttpModule
