@@ -1,8 +1,8 @@
-import { IsString, IsArray, ValidateNested, IsOptional } from 'class-validator';
+import { IsString, IsArray, ValidateNested } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { VpRequestQueryDto } from './vp-request-query.dto';
-import { ExchangeInteractServiceDefinitionDto } from './exchange-interact-service-definition.dto';
+import { VpRequestInteractDto } from 'src/vc-api/exchanges/dtos/vp-request-interact.dto';
 
 export class VpRequestDto {
   @ApiProperty({
@@ -15,15 +15,19 @@ export class VpRequestDto {
   query: VpRequestQueryDto[];
 
   @ApiProperty({
-    description: 'A list of interaction mechanisms supported by the server.',
-    type: [ExchangeInteractServiceDefinitionDto],
-    required: false
+    description:
+      'A challenge, intended to prevent replay attacks, provided by the requester that is typically expected to be included in the Verifiable Presentation response.'
   })
-  @IsOptional()
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => ExchangeInteractServiceDefinitionDto)
-  interact?: ExchangeInteractServiceDefinitionDto[];
+  @IsString()
+  challenge: string;
+
+  @ApiProperty({
+    description: 'A list of interaction mechanisms that are supported by the server.',
+    type: [VpRequestInteractDto]
+  })
+  @ValidateNested()
+  @Type(() => VpRequestInteractDto)
+  interact: VpRequestInteractDto;
 
   @ApiProperty({
     description: 'A domain string to prevent replay attacks.'

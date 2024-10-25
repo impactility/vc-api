@@ -1211,13 +1211,13 @@
         },
         "required": ["result"]
       },
-      "Steps": { "type": "object", "properties": {} },
-      "WorkflowConfig": {
+      "StepDefinitions": { "type": "object", "properties": {} },
+      "WorkflowConfigDto": {
         "type": "object",
         "properties": {
           "steps": {
             "description": "One or more steps required to complete an exchange on the workflow.",
-            "allOf": [{ "$ref": "#/components/schemas/Steps" }]
+            "allOf": [{ "$ref": "#/components/schemas/StepDefinitions" }]
           },
           "initialStep": { "type": "string", "description": "The initial step of the workflow." },
           "id": {
@@ -1232,7 +1232,7 @@
         "properties": {
           "config": {
             "description": "Configuration for a workflow",
-            "allOf": [{ "$ref": "#/components/schemas/WorkflowConfig" }]
+            "allOf": [{ "$ref": "#/components/schemas/WorkflowConfigDto" }]
           }
         },
         "required": ["config"]
