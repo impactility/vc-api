@@ -23,7 +23,7 @@ export class ResidentCardPresentation {
 
   getExchangeDefinition(): ExchangeDefinitionDto {
     const exchangeDefinition: ExchangeDefinitionDto = {
-      exchangeId: this.#exchangeId,
+      id: this.#exchangeId,
       query: [
         {
           type: this.queryType,

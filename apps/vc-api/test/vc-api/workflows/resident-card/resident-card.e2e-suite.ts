@@ -20,10 +20,10 @@ const callbackUrlBase = 'http://example.com';
 const callbackUrlPath = '/endpoint';
 const callbackUrl = `${callbackUrlBase}${callbackUrlPath}`;
 
-export const residentCardExchangeSuite = () => {
+export const residentCardWorkflowSuite = () => {
   it('should support Resident Card issuance and presentation', async () => {
-    // As issuer, configure credential issuance exchange
-    // POST /exchanges
+    // As issuer, configure credential issuance workflow
+    // POST /workflows
     const exchange = new ResidentCardIssuance(callbackUrl);
     const numHolderQueriesPriorToIssuance = 2;
     const issuanceCallbackScope = nock(callbackUrlBase)
@@ -31,13 +31,20 @@ export const residentCardExchangeSuite = () => {
       .times(numHolderQueriesPriorToIssuance)
       .reply(201);
     await request(app.getHttpServer())
-      .post(`${vcApiBaseUrl}/exchanges`)
-      .send(exchange.getExchangeDefinition())
+      .post(`${vcApiBaseUrl}/workflows`)
+      .send(exchange.getWorkflowDefinition())
+      .expect(201);
+
+    // As issuer, configure credential issuance exchange
+    // POST /workflows/{localWorkflowId}/exchanges
+    await request(app.getHttpServer())
+      .post(`${vcApiBaseUrl}/workflows/${exchange.getWorkflowId()}/exchanges/`)
+      .send(exchange.getWorkflowDefinition())
       .expect(201);
 
     // As holder, start issuance exchange
     // POST /exchanges/{exchangeId}
-    const issuanceExchangeEndpoint = `${vcApiBaseUrl}/exchanges/${exchange.getExchangeId()}`;
+    const issuanceExchangeEndpoint = `${vcApiBaseUrl}/exchanges/${exchange.getWorkflowId()}`;
     const issuanceVpRequest = await walletClient.startExchange(issuanceExchangeEndpoint, exchange.queryType);
     const issuanceExchangeContinuationEndpoint = getContinuationEndpoint(issuanceVpRequest);
     expect(issuanceExchangeContinuationEndpoint).toContain(issuanceExchangeEndpoint);
@@ -67,7 +74,7 @@ export const residentCardExchangeSuite = () => {
     // TODO TODO TODO!!! How does the issuer know the transactionId? -> Maybe can rely on notification
     const urlComponents = issuanceExchangeContinuationEndpoint.split('/');
     const transactionId = urlComponents.pop();
-    const transaction = await walletClient.getExchangeTransaction(exchange.getExchangeId(), transactionId);
+    const transaction = await walletClient.getExchangeTransaction(exchange.getWorkflowId(), transactionId);
 
     // As the issuer, check the result of the transaction verification
     expect(transaction.presentationSubmission.verificationResult.verified).toBeTruthy();
@@ -80,7 +87,7 @@ export const residentCardExchangeSuite = () => {
       result: ReviewResult.approved,
       vp: issuedVP
     };
-    await walletClient.addSubmissionReview(exchange.getExchangeId(), transactionId, submissionReview);
+    await walletClient.addSubmissionReview(exchange.getWorkflowId(), transactionId, submissionReview);
 
     // As the holder, check for a reviewed submission
     const secondContinuationResponse = await walletClient.continueExchange(

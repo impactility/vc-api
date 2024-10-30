@@ -8,13 +8,13 @@ import { WalletClient } from '../../../wallet-client';
 import { VerifiablePresentationDto } from '../../../../src/vc-api/credentials/dtos/verifiable-presentation.dto';
 import { CredentialDto } from '../../../../src/vc-api/credentials/dtos/credential.dto';
 import { Presentation } from '../../../../src/vc-api/exchanges/types/presentation';
-import { ExchangeDefinitionDto } from '../../../../src/vc-api/exchanges/dtos/exchange-definition.dto';
 import { VpRequestInteractServiceType } from '../../../../src/vc-api/exchanges/types/vp-request-interact-service-type';
 import { VpRequestQueryType } from '../../../../src/vc-api/exchanges/types/vp-request-query-type';
 import { ProvePresentationOptionsDto } from '../../../../src/vc-api/credentials/dtos/prove-presentation-options.dto';
+import { WorkflowConfigDto } from 'src/vc-api/workflows/dtos/create-workflow-request.dto';
 
 export class ResidentCardIssuance {
-  #exchangeId = 'permanent-resident-card-issuance';
+  #workflowId = 'permanent-resident-card-issuance';
   #callbackUrl: string;
   queryType = VpRequestQueryType.didAuth;
 
@@ -22,32 +22,36 @@ export class ResidentCardIssuance {
     this.#callbackUrl = callbackUrl;
   }
 
-  getExchangeId(): string {
-    return this.#exchangeId;
+  getWorkflowId(): string {
+    return this.#workflowId;
   }
 
-  getExchangeDefinition(): ExchangeDefinitionDto {
-    const exchangeDefinition: ExchangeDefinitionDto = {
-      exchangeId: this.#exchangeId,
-      query: [
-        {
-          type: this.queryType,
-          credentialQuery: []
+  getWorkflowDefinition(): WorkflowConfigDto {
+    const exchangeDefinition: WorkflowConfigDto = {
+      id: this.#workflowId,
+      steps: {
+        intialStep: {
+          query: [
+            {
+              type: this.queryType,
+              credentialQuery: []
+            }
+          ],
+          interactServices: [
+            {
+              type: VpRequestInteractServiceType.mediatedPresentation
+            }
+          ],
+          callback: [
+            {
+              url: this.#callbackUrl
+            }
+          ]
         }
-      ],
-      interactServices: [
-        {
-          type: VpRequestInteractServiceType.mediatedPresentation
-        }
-      ],
-      isOneTime: false,
-      callback: [
-        {
-          url: this.#callbackUrl
-        }
-      ]
+      },
+      initialStep: 'initialStep'
     };
-    return plainToClass(ExchangeDefinitionDto, exchangeDefinition);
+    return plainToClass(WorkflowConfigDto, exchangeDefinition);
   }
 
   /**
