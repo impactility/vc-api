@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { IsArray, ValidateNested } from 'class-validator';
+import { IsArray, IsString, ValidateNested } from 'class-validator';
 import { VpRequestQueryDto } from './vp-request-query.dto';
 import { ExchangeInteractServiceDefinitionDto } from './exchange-interact-service-definition.dto';
 import { CallbackConfigurationDto } from './callback-configuration.dto';
@@ -44,4 +44,10 @@ export class WorkflowStepDefinitionDto {
     isArray: true
   })
   callback: CallbackConfigurationDto[];
+
+  @IsString()
+  @ApiProperty({
+    description: 'The next step after the current step'
+  })
+  nextStep: string;
 }

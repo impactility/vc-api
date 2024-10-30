@@ -45,5 +45,14 @@ export class WorkflowEntity {
     return this.workflowSteps[this.initialStep];
   }
 
-  // public getNextStep(currentStep: stepId): WorkflowStepDefinitionDto {
+  /**
+   * Get the next step from the current step definition
+   * 
+   * @param currentStep 
+   * @returns the next step in the workflow
+   */
+  public getNextStep(currentStep: string): WorkflowStepDefinitionDto {
+    const nextStep = this.workflowSteps[currentStep].nextStep;
+    return this.workflowSteps[nextStep];
+  }
 }

@@ -53,6 +53,9 @@ import { IPresentationDefinition } from '@sphereon/pex';
 import { AuthenticateDto } from './credentials/dtos/authenticate.dto';
 import { CreateWorkflowRequestDto } from './workflows/dtos/create-workflow-request.dto';
 import { WorkflowService } from './workflows/workflow.service';
+import { CreateWorkflowSuccessDto } from './workflows/dtos/create-workflow-success.dto';
+import { CreateExchangeSuccessDto } from './workflows/dtos/create-exchange-success.dto';
+import { ExchangeStateDto } from './workflows/dtos/exchange-state.dto';
 
 /**
  * VcApi API conforms to W3C vc-api
@@ -371,21 +374,83 @@ export class VcApiController {
   }
 
   /**
-   * TODO: Needs to have special authorization
-   * @param exchangeDefinitionDto
+   * Create a workflow
+   * 
+   * @param createWorkflowRequestDto
    * @returns
    */
   @Post('/workflows')
   @ApiOperation({
     description:
-      'Allows the creation of a new exchange by providing the credential query and interaction endpoints\n' +
-      'A NON-STANDARD endpoint currently.\n\n' +
-      'Similar to https://gataca-io.github.io/vui-core/#/Presentations/post_api_v2_presentations'
+      'Creates a new workflow and returns its information in the response body.\n' +
+      'See https://w3c-ccg.github.io/vc-api/#create-workflow'
   })
   @ApiBody({ type: CreateWorkflowRequestDto })
-  @ApiCreatedResponse() // TODO: define response DTO
+  @ApiCreatedResponse({ type: CreateWorkflowSuccessDto })
   @ApiConflictResponse({ type: ConflictErrorResponseDto })
-  async createWorkflow(@Body() createWorkflowRequestDto: CreateWorkflowRequestDto) {
+  async createWorkflow(@Body() createWorkflowRequestDto: CreateWorkflowRequestDto): Promise<CreateWorkflowSuccessDto> {
     return this.workflowService.createWorkflow(createWorkflowRequestDto);
+  }
+
+  /**
+   * Get workflow config object
+   * 
+   * @param createWorkflowRequestDto
+   * @returns
+   */
+  @Get('/workflows/:localWorkflowId')
+  @ApiOperation({
+    description:
+      'Gets the configuration of an existing workflow and returns it in the response body.\n' +
+      'See https://w3c-ccg.github.io/vc-api/#get-workflow-configuration'
+  })
+  @ApiOkResponse({  type: CreateWorkflowSuccessDto })
+  @ApiConflictResponse({ type: NotFoundException })
+  async getWorkflow(
+    @Param('localWorkflowId') localWorkflowId: string
+  ): Promise<CreateWorkflowSuccessDto> {
+    return this.workflowService.getWorkflow(localWorkflowId);
+  }
+
+  /**
+   * Create a new exchange from an existing workflow
+   * 
+   * @param createWorkflowRequestDto
+   * @returns
+   */
+  @Post('/workflows/:localWorkflowId/exchanges')
+  @ApiOperation({
+    description:
+      'Creates a new exchange and returns exchangeId in the response body.\n' +
+      'See https://w3c-ccg.github.io/vc-api/#create-exchange'
+  })
+  @ApiBody({ type: CreateWorkflowRequestDto })
+  @ApiCreatedResponse({ type: CreateExchangeSuccessDto })
+  @ApiConflictResponse({ type: NotFoundException })
+  async createExchangeFromWorkflow(
+    @Param('localWorkflowId') localWorkflowId: string
+  ): Promise<CreateExchangeSuccessDto> {
+    return this.workflowService.createExchange(localWorkflowId);
+  }
+
+  /**
+   * Get exchange state of a workflow
+   * 
+   * @param createWorkflowRequestDto
+   * @returns
+   */
+  @Get('/workflows/:localWorkflowId/exchanges/:localExchangeId')
+  @ApiOperation({
+    description:
+      'Gets the state of an existing exchange and returns it in the response body..\n' +
+      'See https://w3c-ccg.github.io/vc-api/#get-exchange-state'
+  })
+  @ApiOkResponse({  type: ExchangeStateDto })
+  @ApiConflictResponse({ type: NotFoundException })
+  async getExchangeState(
+    @Param('localWorkflowId') localWorkflowId: string,
+    @Param('localExchangeId') localExchangeId: string
+  ): Promise<ExchangeStateDto> {
+    return this.workflowService.getExchangeState(localWorkflowId, localExchangeId);
   }
 }
