@@ -18,4 +18,10 @@ export class CreateExchangeSuccessDto {
   })
   @IsString()
   step: string;
+
+  @ApiProperty({
+    description: 'Status of current exchange step'
+  })
+  @IsString()
+  state: string;
 }

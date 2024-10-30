@@ -8,6 +8,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { ExchangeStep } from '../types/exchange-step';
 import { WorkflowStepDefinitionDto } from '../dtos/workflow-step-definition.dto';
 import { VpRequestDto } from '../dtos/vp-request.dto';
+import { ExchangeState } from '../types/exchange-status';
 
 /**
  * NEW exchange entity (for workflows)
@@ -18,6 +19,7 @@ export class ExchangeEntity {
     this.exchangeId = uuidv4();
     this.workflowId = workflowId;
     this.steps = [];
+    this.state = ExchangeState.pending;
     if (initialStepDefinition) {
       const initialStep = this.hydrateExchangeStep(initialStepDefinition, initialStepId);
       this.steps.push(initialStep);
@@ -33,7 +35,8 @@ export class ExchangeEntity {
   @Column('simple-json')
   steps: ExchangeStep[];
 
-  // TODO add status
+  @Column('text')
+  state: ExchangeState;
 
   /**
    * Convert from a workflow step definition to an instantiated step for an exchange
@@ -48,7 +51,7 @@ export class ExchangeEntity {
   ): ExchangeStep {
     const challenge = uuidv4();
     const interactServices = step.interactServices.map((serviceDef) => {
-      const serviceEndpoint = `${baseUrl}/exchanges/${this.exchangeId}`;
+      const serviceEndpoint = `${baseUrl}/workflows/${this.workflowId}/exchanges/${this.exchangeId}`;
       return {
         type: serviceDef.type,
         serviceEndpoint
