@@ -11,7 +11,7 @@ import { Presentation } from '../../../../src/vc-api/exchanges/types/presentatio
 import { VpRequestInteractServiceType } from '../../../../src/vc-api/exchanges/types/vp-request-interact-service-type';
 import { VpRequestQueryType } from '../../../../src/vc-api/exchanges/types/vp-request-query-type';
 import { ProvePresentationOptionsDto } from '../../../../src/vc-api/credentials/dtos/prove-presentation-options.dto';
-import { WorkflowConfigDto } from 'src/vc-api/workflows/dtos/create-workflow-request.dto';
+import { WorkflowConfigDto } from '../../../../src/vc-api/workflows/dtos/create-workflow-request.dto';
 
 export class ResidentCardIssuance {
   #workflowId = 'permanent-resident-card-issuance';
@@ -31,23 +31,26 @@ export class ResidentCardIssuance {
       id: this.#workflowId,
       steps: {
         intialStep: {
-          query: [
-            {
-              type: this.queryType,
-              credentialQuery: []
-            }
-          ],
-          interactServices: [
-            {
-              type: VpRequestInteractServiceType.mediatedPresentation
-            }
-          ],
-          callback: [
-            {
-              url: this.#callbackUrl
-            }
-          ]
-        }
+          verifiablePresentationRequest: {
+            query: [
+              {
+                type: this.queryType,
+                credentialQuery: []
+              }
+            ],
+            interactServices: [
+              {
+                type: VpRequestInteractServiceType.mediatedPresentation
+              }
+            ],
+            callback: [
+              {
+                url: this.#callbackUrl
+              }
+            ]
+          }
+        },
+        nextStep: undefined
       },
       initialStep: 'initialStep'
     };
