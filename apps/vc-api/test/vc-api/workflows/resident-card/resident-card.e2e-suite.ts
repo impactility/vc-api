@@ -43,7 +43,7 @@ export const residentCardWorkflowSuite = () => {
       .expect(201);
 
     // As holder, start issuance exchange
-    // POST /exchanges/{exchangeId}
+    // POST /workflows/{localWorkflowId}/exchanges/{exchangeId}
     const issuanceExchangeEndpoint = `${vcApiBaseUrl}/exchanges/${exchange.getWorkflowId()}`;
     const issuanceVpRequest = await walletClient.startExchange(issuanceExchangeEndpoint, exchange.queryType);
     const issuanceExchangeContinuationEndpoint = getContinuationEndpoint(issuanceVpRequest);

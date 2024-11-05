@@ -11,7 +11,10 @@ import { Presentation } from '../../../../src/vc-api/exchanges/types/presentatio
 import { VpRequestInteractServiceType } from '../../../../src/vc-api/exchanges/types/vp-request-interact-service-type';
 import { VpRequestQueryType } from '../../../../src/vc-api/exchanges/types/vp-request-query-type';
 import { ProvePresentationOptionsDto } from '../../../../src/vc-api/credentials/dtos/prove-presentation-options.dto';
-import { WorkflowConfigDto } from '../../../../src/vc-api/workflows/dtos/create-workflow-request.dto';
+import {
+  CreateWorkflowRequestDto,
+  WorkflowConfigDto
+} from '../../../../src/vc-api/workflows/dtos/create-workflow-request.dto';
 
 export class ResidentCardIssuance {
   #workflowId = 'permanent-resident-card-issuance';
@@ -26,35 +29,37 @@ export class ResidentCardIssuance {
     return this.#workflowId;
   }
 
-  getWorkflowDefinition(): WorkflowConfigDto {
-    const exchangeDefinition: WorkflowConfigDto = {
-      id: this.#workflowId,
-      steps: {
-        intialStep: {
-          verifiablePresentationRequest: {
-            query: [
-              {
-                type: this.queryType,
-                credentialQuery: []
-              }
-            ],
-            interactServices: [
-              {
-                type: VpRequestInteractServiceType.mediatedPresentation
-              }
-            ],
-            callback: [
-              {
-                url: this.#callbackUrl
-              }
-            ]
-          }
+  getWorkflowDefinition(): CreateWorkflowRequestDto {
+    const exchangeDefinition: CreateWorkflowRequestDto = {
+      config: {
+        id: this.#workflowId,
+        steps: {
+          intialStep: {
+            verifiablePresentationRequest: {
+              query: [
+                {
+                  type: this.queryType,
+                  credentialQuery: []
+                }
+              ],
+              interactServices: [
+                {
+                  type: VpRequestInteractServiceType.mediatedPresentation
+                }
+              ],
+              callback: [
+                {
+                  url: this.#callbackUrl
+                }
+              ]
+            }
+          },
+          nextStep: undefined
         },
-        nextStep: undefined
-      },
-      initialStep: 'initialStep'
+        initialStep: 'initialStep'
+      }
     };
-    return plainToClass(WorkflowConfigDto, exchangeDefinition);
+    return plainToClass(CreateWorkflowRequestDto, exchangeDefinition);
   }
 
   /**
