@@ -3,37 +3,24 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { IsArray, IsString, ValidateNested } from 'class-validator';
-import { VpRequestQueryDto } from './vp-request-query.dto';
-import { ExchangeInteractServiceDefinitionDto } from './exchange-interact-service-definition.dto';
+import { IsArray, IsObject, IsString, ValidateNested } from 'class-validator';
 import { CallbackConfigurationDto } from './callback-configuration.dto';
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
+import { VpRequestDefinitionDto } from './vp-request-definition.dto';
 
 export class WorkflowStepDefinitionDto {
-  @ValidateNested()
-  @IsArray()
-  @Type(() => ExchangeInteractServiceDefinitionDto)
+  
+  @ValidateNested({ each: true })
+  @IsObject()
+  @Type(() => VpRequestDefinitionDto)
   @ApiProperty({
     description:
-      'The Interact Service Definitions are related to the Interaction Types of the Verifiable Presentation Request (VPR) specification.\n' +
-      'However, as it is a configuration object, it not identical to a VPR interact services.\n' +
-      'It can be see as the input data that the application uses to generate VPR interact services during the exchanges.',
-    type: ExchangeInteractServiceDefinitionDto,
-    isArray: true
+      'A Verifiable Presentation Request object',
+    type: VpRequestDefinitionDto
   })
-  interactServices: ExchangeInteractServiceDefinitionDto[];
-
-  @ValidateNested({ each: true })
-  @IsArray()
-  @Type(() => VpRequestQueryDto)
-  @ApiProperty({
-    description: 'Defines requests for data in the Verifiable Presentation',
-    type: VpRequestQueryDto,
-    isArray: true
-  })
-  query: VpRequestQueryDto[];
-
+  verifiablePresentationRequest: VpRequestDefinitionDto;
+  
   @ValidateNested({ each: true })
   @IsArray()
   @Type(() => CallbackConfigurationDto)
