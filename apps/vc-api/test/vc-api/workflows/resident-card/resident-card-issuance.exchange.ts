@@ -30,7 +30,7 @@ export class ResidentCardIssuance {
   }
 
   getWorkflowDefinition(): CreateWorkflowRequestDto {
-    const exchangeDefinition: CreateWorkflowRequestDto = {
+    const workflowDefinition: CreateWorkflowRequestDto = {
       config: {
         id: this.#workflowId,
         steps: {
@@ -59,7 +59,7 @@ export class ResidentCardIssuance {
         initialStep: 'initialStep'
       }
     };
-    return plainToClass(CreateWorkflowRequestDto, exchangeDefinition);
+    return plainToClass(CreateWorkflowRequestDto, workflowDefinition);
   }
 
   /**

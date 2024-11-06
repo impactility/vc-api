@@ -9,7 +9,7 @@ import { VpRequestInteractServiceType } from '../../../../src/vc-api/workflows/t
 import { VpRequestQueryType } from '../../../../src/vc-api/exchanges/types/vp-request-query-type';
 
 export class ResidentCardPresentation {
-  #exchangeId = `b229a18f-db45-4b33-8d36-25d442467bab`;
+  #workflowId = `b229a18f-db45-4b33-8d36-25d442467bab`;
   #callbackUrl: string;
   queryType = VpRequestQueryType.presentationDefinition;
 
@@ -17,11 +17,11 @@ export class ResidentCardPresentation {
     this.#callbackUrl = callbackUrl;
   }
 
-  getExchangeId(): string {
-    return this.#exchangeId;
+  getWorkflowId(): string {
+    return this.#workflowId;
   }
 
-  getExchangeDefinition(): CreateWorkflowRequestDto {
+  getWorkflowDefinition(): CreateWorkflowRequestDto {
     const credentialQuery = {
       presentationDefinition: {
         id: '286bc1e0-f1bd-488a-a873-8d71be3c690e',
@@ -50,7 +50,7 @@ export class ResidentCardPresentation {
     };
     const exchangeDefinition: CreateWorkflowRequestDto = {
       config: {
-        id: this.#exchangeId,
+        id: this.#workflowId,
         steps: {
           initialStep: {
             verifiablePresentationRequest: {

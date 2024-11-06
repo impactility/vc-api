@@ -102,12 +102,12 @@ export const residentCardWorkflowSuite = () => {
     // POST /exchanges
     const presentationExchange = new ResidentCardPresentation(callbackUrl);
     const presentationCallbackScope = nock(callbackUrlBase).post(callbackUrlPath).reply(201);
-    const exchangeDef = presentationExchange.getExchangeDefinition();
+    const exchangeDef = presentationExchange.getWorkflowDefinition();
     await request(app.getHttpServer()).post(`${vcApiBaseUrl}/exchanges`).send(exchangeDef).expect(201);
 
     // Start presentation exchange
     // POST /exchanges/{exchangeId}
-    const exchangeEndpoint = `${vcApiBaseUrl}/exchanges/${presentationExchange.getExchangeId()}`;
+    const exchangeEndpoint = `${vcApiBaseUrl}/exchanges/${presentationExchange.getWorkflowId()}`;
     const presentationVpRequest = await walletClient.startExchange(
       exchangeEndpoint,
       presentationExchange.queryType
