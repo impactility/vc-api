@@ -22,7 +22,7 @@ export class ResidentCardPresentation {
   }
 
   getWorkflowDefinition(): CreateWorkflowRequestDto {
-    const credentialQuery = {
+    const permanentResidentQuery = {
       presentationDefinition: {
         id: '286bc1e0-f1bd-488a-a873-8d71be3c690e',
         input_descriptors: [
@@ -52,12 +52,12 @@ export class ResidentCardPresentation {
       config: {
         id: this.#workflowId,
         steps: {
-          initialStep: {
+          permanentResidentCheck: {
             verifiablePresentationRequest: {
               query: [
                 {
                   type: this.queryType,
-                  credentialQuery
+                  credentialQuery: [permanentResidentQuery]
                 }
               ],
               interactServices: [
@@ -70,9 +70,11 @@ export class ResidentCardPresentation {
               {
                 url: this.#callbackUrl
               }
-            ]
+            ],
+            nextStep: undefined
           }
-        }
+        },
+        initialStep: 'permanentResidentCheck'
       }
     };
     return plainToClass(CreateWorkflowRequestDto, exchangeDefinition);
