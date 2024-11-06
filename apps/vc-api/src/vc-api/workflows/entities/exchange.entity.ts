@@ -50,7 +50,7 @@ export class ExchangeEntity {
     baseUrl?: string
   ): ExchangeStep {
     const challenge = uuidv4();
-    const interactServices = step.interactServices.map((serviceDef) => {
+    const interactServices = step.verifiablePresentationRequest.interactServices.map((serviceDef) => {
       const serviceEndpoint = `${baseUrl}/workflows/${this.workflowId}/exchanges/${this.exchangeId}`;
       return {
         type: serviceDef.type,
@@ -59,7 +59,7 @@ export class ExchangeEntity {
     });
     const vpRequest: VpRequestDto = {
       challenge,
-      query: step.query,
+      query: step.verifiablePresentationRequest.query,
       interact: {
         service: interactServices
       },
