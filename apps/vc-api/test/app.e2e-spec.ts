@@ -55,14 +55,21 @@ describe('App (e2e)', () => {
 });
 
 /**
- * https://stackoverflow.com/a/2599721 , because only need path for test
+ * Get URL to continue the exchange
  * @param vpRequest
  * @returns exchange continuation endpoint
  */
 export function getContinuationEndpoint(vpRequest: VpRequestDto): string {
-  const exchangeContinuationEndpoint = vpRequest.interact.service[0].serviceEndpoint.replace(
-    /https?:\/\/[^/]+/i,
-    ''
-  );
-  return exchangeContinuationEndpoint;
+  const exchangeContinuationEndpoint = vpRequest.interact.service[0].serviceEndpoint;
+  return getUrlPath(exchangeContinuationEndpoint);
+}
+
+/**
+ * Gets the path of a URL
+ * https://stackoverflow.com/a/2599721 , because only need path for test
+ * @param url
+ * @returns URL path
+ */
+export function getUrlPath(url: string): string {
+  return url.replace(/https?:\/\/[^/]+/i, '');
 }

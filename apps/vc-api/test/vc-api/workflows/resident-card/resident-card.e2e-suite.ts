@@ -13,7 +13,7 @@ import {
 } from '../../../../src/vc-api/exchanges/dtos/submission-review.dto';
 import { ResidentCardIssuance } from './resident-card-issuance.exchange';
 import { ResidentCardPresentation } from './resident-card-presentation.exchange';
-import { app, getContinuationEndpoint, vcApiBaseUrl, walletClient } from '../../../app.e2e-spec';
+import { app, getContinuationEndpoint, getUrlPath, vcApiBaseUrl, walletClient } from '../../../app.e2e-spec';
 import { ProvePresentationOptionsDto } from 'src/vc-api/credentials/dtos/prove-presentation-options.dto';
 
 const callbackUrlBase = 'http://example.com';
@@ -24,7 +24,7 @@ export const residentCardWorkflowSuite = () => {
   it('should support Resident Card issuance and presentation', async () => {
     // As issuer, configure credential issuance workflow
     // POST /workflows
-    const exchange = new ResidentCardIssuance(callbackUrl);
+    const issuanceWorkflow = new ResidentCardIssuance(callbackUrl);
     const numHolderQueriesPriorToIssuance = 2;
     const issuanceCallbackScope = nock(callbackUrlBase)
       .post(callbackUrlPath)
@@ -32,20 +32,24 @@ export const residentCardWorkflowSuite = () => {
       .reply(201);
     await request(app.getHttpServer())
       .post(`${vcApiBaseUrl}/workflows`)
-      .send(exchange.getWorkflowDefinition())
+      .send(issuanceWorkflow.getWorkflowDefinition())
       .expect(201);
 
-    // As issuer, configure credential issuance exchange
+    // As issuer, create credential issuance exchange
     // POST /workflows/{localWorkflowId}/exchanges
-    await request(app.getHttpServer())
-      .post(`${vcApiBaseUrl}/workflows/${exchange.getWorkflowId()}/exchanges/`)
-      .send(exchange.getWorkflowDefinition())
+    const createExchangeResponse = await request(app.getHttpServer())
+      .post(`${vcApiBaseUrl}/workflows/${issuanceWorkflow.getWorkflowId()}/exchanges/`)
+      .send(issuanceWorkflow.getWorkflowDefinition())
       .expect(201);
+    const exchangeId = createExchangeResponse.body.exchangeId;
 
     // As holder, start issuance exchange
-    // POST /workflows/{localWorkflowId}/exchanges/{exchangeId}
-    const issuanceExchangeEndpoint = `${vcApiBaseUrl}/exchanges/${exchange.getWorkflowId()}`;
-    const issuanceVpRequest = await walletClient.startExchange(issuanceExchangeEndpoint, exchange.queryType);
+    // POST /workflows/{localWorkflowId}/exchanges/{localExchangeId}
+    const issuanceExchangeEndpoint = getUrlPath(exchangeId);
+    const issuanceVpRequest = await walletClient.startWorkflowExchange(
+      issuanceExchangeEndpoint,
+      issuanceWorkflow.queryType
+    );
     const issuanceExchangeContinuationEndpoint = getContinuationEndpoint(issuanceVpRequest);
     expect(issuanceExchangeContinuationEndpoint).toContain(issuanceExchangeEndpoint);
 
@@ -66,28 +70,46 @@ export const residentCardWorkflowSuite = () => {
 
     // As holder, continue exchange by submitting did auth presentation
     for (let i = 0; i < numHolderQueriesPriorToIssuance; i++) {
-      await walletClient.continueExchange(issuanceExchangeContinuationEndpoint, didAuthVp, true, true);
+      await walletClient.continueWorkflowExchange(
+        issuanceExchangeContinuationEndpoint,
+        didAuthVp,
+        true,
+        true
+      );
     }
     issuanceCallbackScope.done();
 
-    // As the issuer, get the transaction
-    // TODO TODO TODO!!! How does the issuer know the transactionId? -> Maybe can rely on notification
+    // As the issuer, get the step submission
     const urlComponents = issuanceExchangeContinuationEndpoint.split('/');
-    const transactionId = urlComponents.pop();
-    const transaction = await walletClient.getExchangeTransaction(exchange.getWorkflowId(), transactionId);
+    const localExchangeId = urlComponents.pop();
+    const { completedSteps } = await walletClient.getExchangeState(
+      issuanceWorkflow.getWorkflowId(),
+      localExchangeId
+    );
+    const didAuthStep = completedSteps[0];
+    const stepSubmission = await walletClient.getExchangeStepSubmission(
+      issuanceWorkflow.getWorkflowId(),
+      localExchangeId,
+      didAuthStep
+    );
 
     // As the issuer, check the result of the transaction verification
-    expect(transaction.presentationSubmission.verificationResult.verified).toBeTruthy();
-    expect(transaction.presentationSubmission.verificationResult.errors).toHaveLength(0);
+    expect(stepSubmission.presentationSubmission.verificationResult.verified).toBeTruthy();
+    expect(stepSubmission.presentationSubmission.verificationResult.errors).toHaveLength(0);
 
     // As the issuer, create a presentation to provide the credential to the holder
-    const issueResult = await exchange.issueCredential(didAuthVp, walletClient);
+    const issueResult = await issuanceWorkflow.issueCredential(didAuthVp, walletClient);
     const issuedVP = issueResult.vp; // VP used to wrapped issued credentials
     const submissionReview: SubmissionReviewDto = {
       result: ReviewResult.approved,
       vp: issuedVP
     };
-    await walletClient.addSubmissionReview(exchange.getWorkflowId(), transactionId, submissionReview);
+    await walletClient.addStepSubmissionReview(
+      issuanceWorkflow.getWorkflowId(),
+      localExchangeId,
+      didAuthStep,
+      submissionReview
+    );
 
     // As the holder, check for a reviewed submission
     const secondContinuationResponse = await walletClient.continueExchange(
@@ -98,22 +120,30 @@ export const residentCardWorkflowSuite = () => {
     const issuedVc = secondContinuationResponse.vp.verifiableCredential[0];
     expect(issuedVc).toBeDefined();
 
-    // Configure presentation exchange
-    // POST /exchanges
-    const presentationExchange = new ResidentCardPresentation(callbackUrl);
+    // As verifier, configure presentation workflow
+    // POST /workflows
+    const presentationWorkflow = new ResidentCardPresentation(callbackUrl);
     const presentationCallbackScope = nock(callbackUrlBase).post(callbackUrlPath).reply(201);
-    const exchangeDef = presentationExchange.getWorkflowDefinition();
-    await request(app.getHttpServer()).post(`${vcApiBaseUrl}/exchanges`).send(exchangeDef).expect(201);
+    const workflowDef = presentationWorkflow.getWorkflowDefinition();
+    await request(app.getHttpServer()).post(`${vcApiBaseUrl}/workflows`).send(workflowDef).expect(201);
 
-    // Start presentation exchange
-    // POST /exchanges/{exchangeId}
-    const exchangeEndpoint = `${vcApiBaseUrl}/exchanges/${presentationExchange.getWorkflowId()}`;
+    // As verifier, create presentation exchange
+    // POST /workflows/{localWorkflowId}/exchanges/
+    const createPresentationExchangeResponse = await request(app.getHttpServer())
+      .post(`${vcApiBaseUrl}/workflows/${issuanceWorkflow.getWorkflowId()}/exchanges/`)
+      .send(issuanceWorkflow.getWorkflowDefinition())
+      .expect(201);
+    const presentationExchangeId = createPresentationExchangeResponse.body.exchangeId;
+
+    // As holder, start issuance exchange
+    // POST /workflows/{localWorkflowId}/exchanges/{localExchangeId}
+    const presentationExchangeEndpoint = getUrlPath(presentationExchangeId);
     const presentationVpRequest = await walletClient.startExchange(
-      exchangeEndpoint,
-      presentationExchange.queryType
+      presentationExchangeEndpoint,
+      presentationWorkflow.queryType
     );
     const presentationExchangeContinuationEndpoint = getContinuationEndpoint(presentationVpRequest);
-    expect(presentationExchangeContinuationEndpoint).toContain(exchangeEndpoint);
+    expect(presentationExchangeContinuationEndpoint).toContain(presentationExchangeEndpoint);
 
     // Holder should parse VP Request for correct credentials...
     // Assume that holder figures out which VC they need and can prep presentation

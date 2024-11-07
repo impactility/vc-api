@@ -159,4 +159,87 @@ export class WalletClient {
       .expect(201);
     return continueExchangeResponse?.body;
   }
+
+  /**
+   * POST /workflows/{localWorkflowId}/exchanges/{localExchangeId}
+   */
+  async startWorkflowExchange(
+    exchangeEndpoint: string,
+    expectedQueryType: VpRequestQueryType
+  ): Promise<VpRequestDto> {
+    const startWorkflowResponse = await request(this.#app.getHttpServer()).post(exchangeEndpoint).expect(201);
+    const vpRequest = (startWorkflowResponse.body as ExchangeResponseDto).vpRequest;
+    expect(vpRequest).toBeDefined();
+    const challenge = vpRequest.challenge;
+    expect(challenge).toBeDefined();
+    expect(vpRequest.query).toHaveLength(1);
+    expect(vpRequest.query[0].type).toEqual(expectedQueryType);
+    return vpRequest;
+  }
+
+  /**
+   * POST /workflows/{localWorkflowId}/exchanges/{localExchangeId}
+   * @param exchangeContinuationEndpoint
+   * @param vp
+   */
+  async continueWorkflowExchange(
+    exchangeContinuationEndpoint: string,
+    vp: VerifiablePresentationDto,
+    expectsVpRequest: boolean,
+    expectsProcessionInProgress = false
+  ) {
+    const continueExchangeResponse = await request(this.#app.getHttpServer())
+      .put(exchangeContinuationEndpoint)
+      .send(vp)
+      .expect(expectsProcessionInProgress ? 202 : 200);
+    expect(continueExchangeResponse.body.errors).toHaveLength(0);
+    if (expectsVpRequest) {
+      expect(continueExchangeResponse.body.vpRequest).toBeDefined();
+    } else {
+      expect(continueExchangeResponse.body.vpRequest).toBeUndefined();
+    }
+    return continueExchangeResponse.body as ExchangeResponseDto;
+  }
+
+  /**
+   * GET /workflows/{localWorkflowId}/exchanges/{localExchangeId}
+   */
+  async getExchangeState(localWorkflowId: string, localExchangeId: string) {
+    const exchangeState = await request(this.#app.getHttpServer())
+      .get(`${API_DEFAULT_VERSION_PREFIX}/vc-api/workflows/${localWorkflowId}/exchanges/${localExchangeId}`)
+      .expect(200);
+
+    return exchangeState.body;
+  }
+
+  /**
+   * GET /workflows/{localWorkflowId}/exchanges/{localExchangeId}/steps/{step}
+   */
+  async getExchangeStepSubmission(localWorkflowId: string, localExchangeId: string, step: string) {
+    const exchangeParticipationResponse = await request(this.#app.getHttpServer())
+      .get(
+        `${API_DEFAULT_VERSION_PREFIX}/vc-api/workflows/${localWorkflowId}/exchanges/${localExchangeId}/steps/${step}`
+      )
+      .expect(200);
+
+    return exchangeParticipationResponse.body as TransactionDto;
+  }
+
+  /**
+   * POST /workflows/{localWorkflowId}/exchanges/{localeExchangeId}/steps/{stepId}/review
+   */
+  async addStepSubmissionReview(
+    localWorkflowId: string,
+    localExchangeId: string,
+    step: string,
+    submissionReviewDto: SubmissionReviewDto
+  ) {
+    const continueExchangeResponse = await request(this.#app.getHttpServer())
+      .post(
+        `${API_DEFAULT_VERSION_PREFIX}/vc-api/workflows/${localWorkflowId}/exchanges/${localExchangeId}/steps/${step}/review`
+      )
+      .send(submissionReviewDto)
+      .expect(201);
+    return continueExchangeResponse?.body;
+  }
 }
