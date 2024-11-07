@@ -3,27 +3,26 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { VpRequestDto } from '../dtos/vp-request.dto';
+import { ExchangeResponseDto } from '../dtos/exchange-response.dto';
 import { CallbackConfiguration } from './callback-configuration';
+// TODO: move to a common place (can probably be in the credentials module)
+import { VerifiablePresentation } from '../../exchanges/types/verifiable-presentation';
+import { SubmissionVerifier } from './submission-verifier';
 
-export class ExchangeStep {
-  constructor(stepId: string, vpRequest: VpRequestDto, callback: CallbackConfiguration[]) {
+export abstract class ExchangeStep {
+  constructor(stepId: string, callback: CallbackConfiguration[]) {
     this.stepId = stepId;
-    this.verifiablePresentationRequest = vpRequest;
     this.callback = callback;
   }
 
   stepId: string;
 
-  verifiablePresentationRequest: VpRequestDto;
-
-  /**
-   * From https://w3c-ccg.github.io/vp-request-spec/#format :
-   * "To make a request for one or more objects wrapped in a Verifiable Presentation,
-   *  a client constructs a JSON request describing one or more queries that it wishes to perform from the receiver."
-   * "The query type serves as the main extension point mechanism for requests for data in the presentation."
-   *
-   * This property contains the queries that are to be instantiated in each transaction
-   */
   callback: CallbackConfiguration[];
+
+  public abstract processPresentation(
+    presentation: VerifiablePresentation,
+    verifier: SubmissionVerifier
+  ): Promise<{ errors: string[] }>;
+
+  public abstract getStepResponse(): ExchangeResponseDto;
 }
