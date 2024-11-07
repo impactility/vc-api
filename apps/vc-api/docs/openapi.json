@@ -599,7 +599,7 @@
       "post": {
         "operationId": "VcApiController_createWorkflow",
         "summary": "",
-        "description": "Allows the creation of a new exchange by providing the credential query and interaction endpoints\nA NON-STANDARD endpoint currently.\n\nSimilar to https://gataca-io.github.io/vui-core/#/Presentations/post_api_v2_presentations",
+        "description": "Creates a new workflow and returns its information in the response body.\nSee https://w3c-ccg.github.io/vc-api/#create-workflow",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -608,7 +608,12 @@
           }
         },
         "responses": {
-          "201": { "description": "" },
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/CreateWorkflowSuccessDto" } }
+            }
+          },
           "400": {
             "description": "",
             "content": {
@@ -619,6 +624,130 @@
             "description": "",
             "content": {
               "application/json": { "schema": { "$ref": "#/components/schemas/ConflictErrorResponseDto" } }
+            }
+          },
+          "500": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/InternalServerErrorResponseDto" }
+              }
+            }
+          }
+        },
+        "tags": ["vc-api"]
+      }
+    },
+    "/v1/vc-api/workflows/{localWorkflowId}": {
+      "get": {
+        "operationId": "VcApiController_getWorkflow",
+        "summary": "",
+        "description": "Gets the configuration of an existing workflow and returns it in the response body.\nSee https://w3c-ccg.github.io/vc-api/#get-workflow-configuration",
+        "parameters": [
+          { "name": "localWorkflowId", "required": true, "in": "path", "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/CreateWorkflowSuccessDto" } }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/BadRequestErrorResponseDto" } }
+            }
+          },
+          "409": {
+            "description": "",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/NotFoundException" } }
+            }
+          },
+          "500": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/InternalServerErrorResponseDto" }
+              }
+            }
+          }
+        },
+        "tags": ["vc-api"]
+      }
+    },
+    "/v1/vc-api/workflows/{localWorkflowId}/exchanges": {
+      "post": {
+        "operationId": "VcApiController_createExchangeFromWorkflow",
+        "summary": "",
+        "description": "Creates a new exchange and returns exchangeId in the response body.\nSee https://w3c-ccg.github.io/vc-api/#create-exchange",
+        "parameters": [
+          { "name": "localWorkflowId", "required": true, "in": "path", "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/CreateWorkflowRequestDto" } }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/CreateExchangeSuccessDto" } }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/BadRequestErrorResponseDto" } }
+            }
+          },
+          "409": {
+            "description": "",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/NotFoundException" } }
+            }
+          },
+          "500": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/InternalServerErrorResponseDto" }
+              }
+            }
+          }
+        },
+        "tags": ["vc-api"]
+      }
+    },
+    "/v1/vc-api/workflows/{localWorkflowId}/exchanges/{localExchangeId}": {
+      "get": {
+        "operationId": "VcApiController_getExchangeState",
+        "summary": "",
+        "description": "Gets the state of an existing exchange and returns it in the response body..\nSee https://w3c-ccg.github.io/vc-api/#get-exchange-state",
+        "parameters": [
+          { "name": "localWorkflowId", "required": true, "in": "path", "schema": { "type": "string" } },
+          { "name": "localExchangeId", "required": true, "in": "path", "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ExchangeStateDto" } }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/BadRequestErrorResponseDto" } }
+            }
+          },
+          "409": {
+            "description": "",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/NotFoundException" } }
             }
           },
           "500": {
@@ -1236,6 +1365,34 @@
           }
         },
         "required": ["config"]
+      },
+      "CreateWorkflowSuccessDto": {
+        "type": "object",
+        "properties": {
+          "config": {
+            "description": "Configuration for a workflow",
+            "allOf": [{ "$ref": "#/components/schemas/WorkflowConfigDto" }]
+          }
+        },
+        "required": ["config"]
+      },
+      "NotFoundException": { "type": "object", "properties": {} },
+      "CreateExchangeSuccessDto": {
+        "type": "object",
+        "properties": {
+          "exchangeId": { "type": "string", "description": "The URL that uniquely identifies the exchange." },
+          "step": { "type": "string", "description": "The semantic string ID for the current step." },
+          "state": { "type": "string", "description": "Status of current exchange step" }
+        },
+        "required": ["exchangeId", "step", "state"]
+      },
+      "ExchangeStateDto": {
+        "type": "object",
+        "properties": {
+          "exchangeId": { "type": "string", "description": "Exchange Id" },
+          "state": { "type": "string", "description": "Exchange status" }
+        },
+        "required": ["exchangeId", "state"]
       }
     }
   }
