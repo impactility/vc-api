@@ -9,9 +9,12 @@ import { ExchangeStep } from './exchange-step';
 import { ExchangeResponseDto } from '../dtos/exchange-response.dto';
 
 export class IssuanceExchangeStep extends ExchangeStep {
-  constructor(stepId: string, callback: CallbackConfiguration[]) {
+  constructor(stepId: string, callback: CallbackConfiguration[], holderRedirectUrl: string) {
     super(stepId, callback);
+    this.holderRedirectUrl = holderRedirectUrl;
   }
+
+  holderRedirectUrl: string;
 
   /**
    * TODO: decide if needs to be an entity
@@ -38,9 +41,11 @@ export class IssuanceExchangeStep extends ExchangeStep {
       return {
         verifiablePresentation: this.issuedVP
       };
-    } else {
+    }
+    // As the issuer hasn't provided VP yet, holder needs to poll until response updates
+    else {
       return {
-        redirectUrl: ''
+        redirectUrl: this.holderRedirectUrl
       };
     }
   }
