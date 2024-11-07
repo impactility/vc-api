@@ -99,8 +99,8 @@ export class ExchangeEntity {
     stepId: string,
     baseUrl?: string
   ): ExchangeStep {
+    const serviceEndpoint = `${baseUrl}/workflows/${this.workflowId}/exchanges/${this.exchangeId}`;
     const interactServices = step.verifiablePresentationRequest.interactServices.map((serviceDef) => {
-      const serviceEndpoint = `${baseUrl}/workflows/${this.workflowId}/exchanges/${this.exchangeId}`;
       return {
         type: serviceDef.type,
         serviceEndpoint
@@ -121,7 +121,7 @@ export class ExchangeEntity {
     }
     // If the step doesn't have a VPR, then it must be for issuance
     else {
-      return new IssuanceExchangeStep(stepId, step.callback);
+      return new IssuanceExchangeStep(stepId, step.callback, serviceEndpoint);
     }
   }
 }
