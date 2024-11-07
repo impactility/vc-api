@@ -2,7 +2,7 @@ import { IsString, IsArray, ValidateNested } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { VpRequestQueryDto } from './vp-request-query.dto';
-import { VpRequestInteractDto } from 'src/vc-api/exchanges/dtos/vp-request-interact.dto';
+import { VpRequestInteractDto } from '../../exchanges/dtos/vp-request-interact.dto';
 
 export class VpRequestDto {
   @ApiProperty({
