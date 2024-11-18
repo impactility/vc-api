@@ -10,17 +10,21 @@ import { ApiProperty } from '@nestjs/swagger';
 import { VpRequestDefinitionDto } from './vp-request-definition.dto';
 
 export class WorkflowStepDefinitionDto {
-  
   @ValidateNested({ each: true })
   @IsObject()
   @Type(() => VpRequestDefinitionDto)
   @ApiProperty({
-    description:
-      'A Verifiable Presentation Request object',
+    description: 'A Verifiable Presentation Request object',
     type: VpRequestDefinitionDto
   })
   verifiablePresentationRequest: VpRequestDefinitionDto;
-  
+
+  @IsString()
+  @ApiProperty({
+    description: 'The next step after the current step'
+  })
+  nextStep: string;
+
   @ValidateNested({ each: true })
   @IsArray()
   @Type(() => CallbackConfigurationDto)
@@ -31,10 +35,4 @@ export class WorkflowStepDefinitionDto {
     isArray: true
   })
   callback: CallbackConfigurationDto[];
-
-  @IsString()
-  @ApiProperty({
-    description: 'The next step after the current step'
-  })
-  nextStep: string;
 }
