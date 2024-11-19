@@ -31,7 +31,7 @@ export class ResidentCardIssuance {
       config: {
         id: this.#workflowId,
         steps: {
-          residentCardIssuance: {
+          didAuth: {
             verifiablePresentationRequest: {
               query: [
                 {
@@ -41,7 +41,7 @@ export class ResidentCardIssuance {
               ],
               interactServices: [
                 {
-                  type: VpRequestInteractServiceType.mediatedPresentation
+                  type: VpRequestInteractServiceType.unmediatedPresentation
                 }
               ]
             },
@@ -50,10 +50,19 @@ export class ResidentCardIssuance {
                 url: this.#callbackUrl
               }
             ],
+            nextStep: 'residentCardIssuance'
+          },
+          residentCardIssuance: {
+            verifiablePresentationRequest: undefined,
+            callback: [
+              {
+                url: this.#callbackUrl
+              }
+            ],
             nextStep: undefined
           }
         },
-        initialStep: 'residentCardIssuance'
+        initialStep: 'didAuth'
       }
     };
     return plainToClass(CreateWorkflowRequestDto, workflowDefinition);
