@@ -39,7 +39,7 @@ export const residentCardWorkflowSuite = () => {
     // POST /workflows/{localWorkflowId}/exchanges
     const createExchangeResponse = await request(app.getHttpServer())
       .post(`${vcApiBaseUrl}/workflows/${issuanceWorkflow.getWorkflowId()}/exchanges/`)
-      .send(issuanceWorkflow.getWorkflowDefinition())
+      .send()
       .expect(201);
     const exchangeId = createExchangeResponse.body.exchangeId;
 
@@ -131,7 +131,7 @@ export const residentCardWorkflowSuite = () => {
     // POST /workflows/{localWorkflowId}/exchanges/
     const createPresentationExchangeResponse = await request(app.getHttpServer())
       .post(`${vcApiBaseUrl}/workflows/${issuanceWorkflow.getWorkflowId()}/exchanges/`)
-      .send(issuanceWorkflow.getWorkflowDefinition())
+      .send()
       .expect(201);
     const presentationExchangeId = createPresentationExchangeResponse.body.exchangeId;
 
