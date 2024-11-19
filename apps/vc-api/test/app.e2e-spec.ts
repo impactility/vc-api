@@ -18,6 +18,7 @@ import { ExchangeEntity } from '../src/vc-api/exchanges/entities/exchange.entity
 import { API_DEFAULT_VERSION, API_DEFAULT_VERSION_PREFIX } from '../src/setup';
 import { consentAndResidentCardLegacyExchangeSuite } from './vc-api/exchanges/consent-and-resident-card-credentialexchange/consent-and-resident-card.e2e-suite';
 import { residentCardWorkflowSuite } from './vc-api/workflows/resident-card/resident-card.e2e-suite';
+import { WorkflowEntity } from '../src/vc-api/workflows/entities/workflow.entity';
 
 // Increasing timeout for debugging
 // Should only affect this file https://jestjs.io/docs/jest-object#jestsettimeouttimeout
@@ -45,6 +46,8 @@ describe('App (e2e)', () => {
     //TODO: reset the database fully
     const exchangeRepository = app.get(getRepositoryToken(ExchangeEntity));
     await exchangeRepository.clear();
+    const workflowRepository = app.get(getRepositoryToken(WorkflowEntity));
+    await workflowRepository.clear();
   });
 
   describe('DID (e2e)', didSuite);
