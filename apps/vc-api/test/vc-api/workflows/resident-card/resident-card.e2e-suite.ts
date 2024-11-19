@@ -11,8 +11,8 @@ import {
   ReviewResult,
   SubmissionReviewDto
 } from '../../../../src/vc-api/exchanges/dtos/submission-review.dto';
-import { ResidentCardIssuance } from './resident-card-issuance.exchange';
-import { ResidentCardPresentation } from './resident-card-presentation.exchange';
+import { ResidentCardIssuance } from './resident-card-issuance.workflow';
+import { ResidentCardPresentation } from './resident-card-presentation.workflow';
 import { app, getContinuationEndpoint, getUrlPath, vcApiBaseUrl, walletClient } from '../../../app.e2e-spec';
 import { ProvePresentationOptionsDto } from 'src/vc-api/credentials/dtos/prove-presentation-options.dto';
 
