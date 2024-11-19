@@ -112,7 +112,7 @@ export const residentCardWorkflowSuite = () => {
     );
 
     // As the holder, check for a reviewed submission
-    const secondContinuationResponse = await walletClient.continueExchange(
+    const secondContinuationResponse = await walletClient.continueWorkflowExchange(
       issuanceExchangeContinuationEndpoint,
       didAuthVp,
       false
@@ -165,7 +165,7 @@ export const residentCardWorkflowSuite = () => {
     const vp = await walletClient.provePresentation({ presentation, options: presentationOptions });
 
     // Holder submits presentation
-    await walletClient.continueExchange(presentationExchangeContinuationEndpoint, vp, false);
+    await walletClient.continueWorkflowExchange(presentationExchangeContinuationEndpoint, vp, false);
     presentationCallbackScope.done();
   });
 };
