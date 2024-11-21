@@ -18,6 +18,7 @@ import { TransactionEntity } from './exchanges/entities/transaction.entity';
 import { PresentationReviewEntity } from './exchanges/entities/presentation-review.entity';
 import { PresentationSubmissionEntity } from './exchanges/entities/presentation-submission.entity';
 import { VpSubmissionVerifierService } from './exchanges/vp-submission-verifier.service';
+import { VpSubmissionVerifierService as WfVpSubmissionVerifierService } from './workflows/vp-submission-verifier.service';
 import { WorkflowService } from './workflows/workflow.service';
 import { WorkflowEntity } from './workflows/entities/workflow.entity';
 import { ExchangeStep } from './workflows/types/exchange-step';
@@ -39,7 +40,7 @@ import { ExchangeStep } from './workflows/types/exchange-step';
     HttpModule
   ],
   controllers: [VcApiController],
-  providers: [CredentialsService, ExchangeService, VpSubmissionVerifierService, WorkflowService],
+  providers: [CredentialsService, ExchangeService, VpSubmissionVerifierService, WorkflowService, WfVpSubmissionVerifierService],
   exports: [CredentialsService, ExchangeService, WorkflowService]
 })
 export class VcApiModule {}
