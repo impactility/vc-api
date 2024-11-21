@@ -11,11 +11,14 @@ import { ExchangeState } from './types/exchange-status';
 import { ExchangeStateDto } from './dtos/exchange-state.dto';
 import { VerifiablePresentationDto } from '../credentials/dtos/verifiable-presentation.dto';
 import { VerifiablePresentation } from './types/verifiable-presentation';
+import { VpSubmissionVerifierService } from './vp-submission-verifier.service';
+import { ExchangeResponseDto } from './dtos/exchange-response.dto';
 
 export class WorkflowService {
   private readonly logger = new Logger(WorkflowService.name, { timestamp: true });
-
+  
   constructor(
+    private vpSubmissionVerifierService: VpSubmissionVerifierService,
     @InjectRepository(WorkflowEntity)
     private workflowRepository: Repository<WorkflowEntity>,
     @InjectRepository(ExchangeEntity)
@@ -85,7 +88,7 @@ export class WorkflowService {
     localWorkflowId: string,
     localExchangeId: string,
     presentation: VerifiablePresentationDto
-  ): Promise<VerifiablePresentation> {
+  ): Promise<ExchangeResponseDto> {
     const exchange = await this.exchangeRepository.findOneBy(
       { workflowId: localWorkflowId, exchangeId: localExchangeId }
     );
@@ -98,9 +101,15 @@ export class WorkflowService {
       throw new NotFoundException(`workflowId='${localWorkflowId}' does not exist`); 
     }
     const currentStep = exchange.getCurrentStep();
-    const nextStep = workflow.getNextStep(currentStep.stepId);
+    const [nextStepDefinition, nextStepId] = workflow.getNextStep(currentStep.stepId);
 
-    return null;
+    const exchangeRepsonse = await exchange.participateInExchange(
+      presentation,
+      this.vpSubmissionVerifierService,
+      nextStepDefinition,
+      nextStepId
+    )
+    return exchangeRepsonse.response;
   }
 
 }
