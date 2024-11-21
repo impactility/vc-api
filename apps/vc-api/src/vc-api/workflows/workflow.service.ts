@@ -9,6 +9,8 @@ import { ExchangeEntity } from './entities/exchange.entity';
 import { CreateWorkflowSuccessDto } from './dtos/create-workflow-success.dto';
 import { ExchangeState } from './types/exchange-status';
 import { ExchangeStateDto } from './dtos/exchange-state.dto';
+import { VerifiablePresentationDto } from '../credentials/dtos/verifiable-presentation.dto';
+import { VerifiablePresentation } from './types/verifiable-presentation';
 
 export class WorkflowService {
   private readonly logger = new Logger(WorkflowService.name, { timestamp: true });
@@ -78,4 +80,27 @@ export class WorkflowService {
       state: exchange.state
     }
   }
+
+  public async participateInExchange(
+    localWorkflowId: string,
+    localExchangeId: string,
+    presentation: VerifiablePresentationDto
+  ): Promise<VerifiablePresentation> {
+    const exchange = await this.exchangeRepository.findOneBy(
+      { workflowId: localWorkflowId, exchangeId: localExchangeId }
+    );
+    if (exchange == null) {
+      throw new NotFoundException(`exchangeId='${localExchangeId}' does not exist`);
+    }
+
+    const workflow = await this.workflowRepository.findOneBy({ workflowId: localWorkflowId });
+    if (workflow == null) {
+      throw new NotFoundException(`workflowId='${localWorkflowId}' does not exist`); 
+    }
+    const currentStep = exchange.getCurrentStep();
+    const nextStep = workflow.getNextStep(currentStep.stepId);
+
+    return null;
+  }
+
 }
