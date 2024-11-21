@@ -9,7 +9,7 @@ import { ExchangeStep } from '../types/exchange-step';
 import { WorkflowStepDefinitionDto } from '../dtos/workflow-step-definition.dto';
 import { VpRequestDto } from '../dtos/vp-request.dto';
 import { ExchangeState } from '../types/exchange-status';
-import { VerifiablePresentation } from '../../exchanges/types/verifiable-presentation';
+import { VerifiablePresentation } from '../types/verifiable-presentation';
 import { SubmissionVerifier } from '../../exchanges/types/submission-verifier';
 import { QueryExchangeStep } from '../types/query-exchange-step';
 import { IssuanceExchangeStep } from '../types/issuance-exchange-step';
@@ -84,7 +84,7 @@ export class ExchangeEntity {
     return currentStep.getStepResponse();
   }
 
-  private getCurrentStep() {
+  public getCurrentStep() {
     return this.steps[-1];
   }
 
