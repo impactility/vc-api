@@ -19,7 +19,7 @@ import { CallbackConfiguration } from '../types/callback-configuration';
 /**
  * NEW exchange entity (for workflows)
  */
-@Entity()
+@Entity('workflow_exchanges')
 export class ExchangeEntity {
   constructor(workflowId: string, initialStepDefinition: WorkflowStepDefinitionDto, initialStepId: string) {
     this.exchangeId = uuidv4();
