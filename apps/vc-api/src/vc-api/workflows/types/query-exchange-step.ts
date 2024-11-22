@@ -8,19 +8,19 @@ import { VpRequestDto } from '../dtos/vp-request.dto';
 import { CallbackConfiguration } from './callback-configuration';
 import { ExchangeStep } from './exchange-step';
 import { SubmissionVerifier } from './submission-verifier';
-// TODO: move to a common place (can probably be in the credentials module)
-import { VerifiablePresentation } from '../../exchanges/types/verifiable-presentation';
+import { VerifiablePresentation } from '../types/verifiable-presentation';
 import { PresentationSubmission } from './presentation-submission';
 import { Column } from 'typeorm';
+import { ExchangeVerificationResultDto } from '../dtos/exchange-verification-result.dto';
 
 export class QueryExchangeStep extends ExchangeStep {
   constructor(stepId: string, vpRequest: VpRequestDto, callback: CallbackConfiguration[]) {
     super(stepId, callback);
-    this.verifiablePresentationRequest = vpRequest;
+    this.vpRequest = vpRequest;
   }
 
   @Column('simple-json')
-  verifiablePresentationRequest: VpRequestDto;
+  vpRequest: VpRequestDto;
 
   @Column('simple-json')
   presentationSubmission?: PresentationSubmission;
@@ -33,19 +33,20 @@ export class QueryExchangeStep extends ExchangeStep {
   public async processPresentation(
     presentation: VerifiablePresentation,
     verifier: SubmissionVerifier
-  ): Promise<{ errors: string[] }> {
+  ): Promise<{ errors: string[], verificationResult: ExchangeVerificationResultDto }> {
     const verificationResult = await verifier.verifyVpRequestSubmission(
       presentation,
-      this.verifiablePresentationRequest
+      this.vpRequest
     );
+
     const errors = verificationResult.errors;
     this.presentationSubmission = new PresentationSubmission(presentation, verificationResult);
-    return { errors };
+    return { errors, verificationResult };
   }
 
   public getStepResponse(): ExchangeResponseDto {
     return {
-      verifiablePresentationRequest: this.verifiablePresentationRequest
+      verifiablePresentationRequest: this.vpRequest
     };
   }
 }
