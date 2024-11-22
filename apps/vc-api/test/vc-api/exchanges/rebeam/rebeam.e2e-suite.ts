@@ -12,7 +12,7 @@ import { RebeamSupplier } from './rebeam-supplier';
 import { getChargingDataCredential, presentationDefinition } from '../../credential.service.spec.data';
 import { ProvePresentationOptionsDto } from '../../../../src/vc-api/credentials/dtos/prove-presentation-options.dto';
 
-export const rebeamExchangeSuite = () => {
+export const rebeamLegacyExchangeSuite = () => {
   it('Rebeam presentation using ed25119 signatures', async () => {
     const holderDIDDoc = await walletClient.createDID('key');
     const holderVerificationMethod = holderDIDDoc.verificationMethod[0].id;
