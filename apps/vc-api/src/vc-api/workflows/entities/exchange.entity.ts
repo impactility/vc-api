@@ -5,7 +5,6 @@
 
 import { Column, Entity } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
-import { ExchangeStep } from '../types/exchange-step';
 import { WorkflowStepDefinitionDto } from '../dtos/workflow-step-definition.dto';
 import { VpRequestDto } from '../dtos/vp-request.dto';
 import { ExchangeState } from '../types/exchange-status';
@@ -15,6 +14,7 @@ import { QueryExchangeStep } from '../types/query-exchange-step';
 import { IssuanceExchangeStep } from '../types/issuance-exchange-step';
 import { ExchangeResponseDto } from '../dtos/exchange-response.dto';
 import { CallbackConfiguration } from '../types/callback-configuration';
+import { ExchangeVerificationResultDto } from '../dtos/exchange-verification-result.dto';
 
 /**
  * NEW exchange entity (for workflows)
@@ -39,7 +39,7 @@ export class ExchangeEntity {
   workflowId: string;
 
   @Column('simple-json')
-  steps: ExchangeStep[];
+  steps: Array<QueryExchangeStep | IssuanceExchangeStep>;
 
   @Column('text')
   state: ExchangeState;
@@ -49,17 +49,18 @@ export class ExchangeEntity {
     verifier: SubmissionVerifier,
     nextStep: WorkflowStepDefinitionDto,
     nextStepId: string
-  ): Promise<{ response: ExchangeResponseDto; errors: string[]; callback: CallbackConfiguration[] }> {
+  ): Promise<{ response: ExchangeResponseDto; errors: string[]; callback: CallbackConfiguration[], verificationResult: ExchangeVerificationResultDto }> {
     // Get current step
     const currentStep = this.getCurrentStep();
     // Pass presentation to current step to process
-    const { errors } = await currentStep.processPresentation(presentation, verifier);
+    const { errors, verificationResult } = await currentStep.processPresentation(presentation, verifier);
     // If step processing has errors, return errors
     if (errors.length > 0) {
       return {
         response: {},
         errors,
-        callback: currentStep.callback
+        callback: currentStep.callback,
+        verificationResult
       };
     }
 
@@ -70,7 +71,8 @@ export class ExchangeEntity {
     return {
       response: this.getExchangeResponse(),
       errors: [],
-      callback: currentStep.callback
+      callback: currentStep.callback,
+      verificationResult
     };
   }
 
@@ -98,7 +100,7 @@ export class ExchangeEntity {
     step: WorkflowStepDefinitionDto,
     stepId: string,
     baseUrl?: string
-  ): ExchangeStep {
+  ): QueryExchangeStep | IssuanceExchangeStep {
     const serviceEndpoint = `${baseUrl}/workflows/${this.workflowId}/exchanges/${this.exchangeId}`;
     const interactServices = step.verifiablePresentationRequest.interactServices.map((serviceDef) => {
       return {
@@ -123,5 +125,10 @@ export class ExchangeEntity {
     else {
       return new IssuanceExchangeStep(stepId, step.callback, serviceEndpoint);
     }
+  }
+
+  public getStep(stepId: string): QueryExchangeStep | IssuanceExchangeStep {
+    const step = this.steps.find(step => step.stepId === stepId);
+    return step ;
   }
 }

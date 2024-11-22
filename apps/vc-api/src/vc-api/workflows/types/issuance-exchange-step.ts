@@ -7,8 +7,10 @@ import { VerifiablePresentation } from 'src/vc-api/exchanges/types/verifiable-pr
 import { CallbackConfiguration } from './callback-configuration';
 import { ExchangeStep } from './exchange-step';
 import { ExchangeResponseDto } from '../dtos/exchange-response.dto';
+import { ExchangeVerificationResultDto } from '../dtos/exchange-verification-result.dto';
 
 export class IssuanceExchangeStep extends ExchangeStep {
+
   constructor(stepId: string, callback: CallbackConfiguration[], holderRedirectUrl: string) {
     super(stepId, callback);
     this.holderRedirectUrl = holderRedirectUrl;
@@ -16,23 +18,16 @@ export class IssuanceExchangeStep extends ExchangeStep {
 
   holderRedirectUrl: string;
 
-  /**
-   * TODO: decide if needs to be an entity
-   */
-  // @OneToOne(() => PresentationReviewEntity, {
-  //   cascade: true,
-  //   nullable: true
-  // })
-  // @JoinColumn()
   issuedVP?: VerifiablePresentation;
 
   public addVP(issuanceVp: VerifiablePresentation): void {
     this.issuedVP = issuanceVp;
   }
 
-  public processPresentation(): Promise<{ errors: string[] }> {
+  public processPresentation(): Promise<{ errors: string[], verificationResult: ExchangeVerificationResultDto }> {
     return Promise.resolve({
-      errors: ['Issuance step does not support presentation processing']
+      errors: ['Issuance step does not support presentation processing'],
+      verificationResult: null
     });
   }
 

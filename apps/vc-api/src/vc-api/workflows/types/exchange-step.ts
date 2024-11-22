@@ -5,9 +5,9 @@
 
 import { ExchangeResponseDto } from '../dtos/exchange-response.dto';
 import { CallbackConfiguration } from './callback-configuration';
-// TODO: move to a common place (can probably be in the credentials module)
-import { VerifiablePresentation } from '../../exchanges/types/verifiable-presentation';
+import { VerifiablePresentation } from '../types/verifiable-presentation';
 import { SubmissionVerifier } from './submission-verifier';
+import { ExchangeVerificationResultDto } from '../dtos/exchange-verification-result.dto';
 
 export abstract class ExchangeStep {
   constructor(stepId: string, callback: CallbackConfiguration[]) {
@@ -18,11 +18,11 @@ export abstract class ExchangeStep {
   stepId: string;
 
   callback: CallbackConfiguration[];
-
+  
   public abstract processPresentation(
     presentation: VerifiablePresentation,
     verifier: SubmissionVerifier
-  ): Promise<{ errors: string[] }>;
+  ): Promise<{ errors: string[], verificationResult: ExchangeVerificationResultDto }>;
 
   public abstract getStepResponse(): ExchangeResponseDto;
 }
