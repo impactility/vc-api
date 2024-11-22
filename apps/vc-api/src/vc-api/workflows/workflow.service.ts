@@ -1,4 +1,4 @@
-import { ConflictException, Logger, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { WorkflowEntity } from './entities/workflow.entity';
 import { Repository } from 'typeorm';
@@ -7,12 +7,13 @@ import { CreateExchangeDto } from './dtos/create-exchange.dto';
 import { CreateExchangeSuccessDto } from './dtos/create-exchange-success.dto';
 import { ExchangeEntity } from './entities/exchange.entity';
 import { CreateWorkflowSuccessDto } from './dtos/create-workflow-success.dto';
-import { ExchangeState } from './types/exchange-status';
 import { ExchangeStateDto } from './dtos/exchange-state.dto';
 import { VerifiablePresentationDto } from '../credentials/dtos/verifiable-presentation.dto';
-import { VerifiablePresentation } from './types/verifiable-presentation';
 import { VpSubmissionVerifierService } from './vp-submission-verifier.service';
 import { ExchangeResponseDto } from './dtos/exchange-response.dto';
+import { CallbackDto } from './dtos/callback.dto';
+import { HttpService } from '@nestjs/axios';
+import { validate } from 'class-validator';
 
 export class WorkflowService {
   private readonly logger = new Logger(WorkflowService.name, { timestamp: true });
@@ -22,7 +23,8 @@ export class WorkflowService {
     @InjectRepository(WorkflowEntity)
     private workflowRepository: Repository<WorkflowEntity>,
     @InjectRepository(ExchangeEntity)
-    private exchangeRepository: Repository<ExchangeEntity>
+    private exchangeRepository: Repository<ExchangeEntity>,
+    private httpService: HttpService
   ) {}
 
   public async createWorkflow(createWorkflowRequestDto: CreateWorkflowRequestDto): Promise<CreateWorkflowSuccessDto> {
@@ -102,13 +104,43 @@ export class WorkflowService {
     }
     const currentStep = exchange.getCurrentStep();
     const [nextStepDefinition, nextStepId] = workflow.getNextStep(currentStep.stepId);
-
     const exchangeRepsonse = await exchange.participateInExchange(
       presentation,
       this.vpSubmissionVerifierService,
       nextStepDefinition,
       nextStepId
     )
+
+    if (exchangeRepsonse.errors.length > 0) {
+      throw new BadRequestException(exchangeRepsonse.errors);
+    }
+
+    await this.exchangeRepository.save(exchange);
+    const stepResult = exchange.getStep(currentStep.stepId);
+    const body = CallbackDto.toDto(stepResult);
+
+    const validationErrors = await validate(body, {
+      whitelist: true,
+      forbidUnknownValues: true,
+      forbidNonWhitelisted: false // here we want properties not defined in the CallbackDto to be just stripped out and not sent to a callback endpoint
+    });
+
+    if (validationErrors.length > 0) {
+      this.logger.error('\n' + validationErrors.map((e) => e.toString()).join('\n\n'));
+      throw new Error(validationErrors.toString());
+    }
+
+    Promise.all(
+      stepResult.callback?.map(async (callback) => {
+        try {
+          await this.httpService.axiosRef.post(callback.url, body);
+          this.logger.log(`callback submitted: ${callback.url}`);
+        } catch (err) {
+          this.logger.error(`error calling callback (${callback.url}): ${err}`);
+        }
+      })
+    ).catch((err) => this.logger.error(err));
+    // TODO: decide how to change logic here to handle callback error
     return exchangeRepsonse.response;
   }
 
