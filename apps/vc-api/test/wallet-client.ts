@@ -167,7 +167,7 @@ export class WalletClient {
     exchangeEndpoint: string,
     expectedQueryType: VpRequestQueryType
   ): Promise<VpRequestDto> {
-    const startWorkflowResponse = await request(this.#app.getHttpServer()).post(exchangeEndpoint).expect(201);
+    const startWorkflowResponse = await request(this.#app.getHttpServer()).post(exchangeEndpoint).expect(200);
     const vpRequest = (startWorkflowResponse.body as ExchangeResponseDto).vpRequest;
     expect(vpRequest).toBeDefined();
     const challenge = vpRequest.challenge;
