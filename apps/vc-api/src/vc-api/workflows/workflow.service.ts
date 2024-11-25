@@ -73,7 +73,7 @@ export class WorkflowService {
     const removeTrailingSlash = (str) => (str.endsWith('/') ? str.slice(0, -1) : str);
     const exchangeId = `${removeTrailingSlash(
       baseUrl
-    )}/workflows/${localWorkflowId}/exchanges/${localExchangeId}`;
+    )}/v1/vc-api/workflows/${localWorkflowId}/exchanges/${localExchangeId}`;
     return {
       exchangeId: exchangeId,
       step: workflow.initialStep,

@@ -57,6 +57,7 @@ import { CreateWorkflowSuccessDto } from './workflows/dtos/create-workflow-succe
 import { CreateExchangeSuccessDto } from './workflows/dtos/create-exchange-success.dto';
 import { ExchangeStateDto } from './workflows/dtos/exchange-state.dto';
 import { ExchangeStepStateDto } from './workflows/dtos/exchange-step-state.dto';
+import { ExchangeResponseDto as WfExchangeResponseDto } from './workflows/dtos/exchange-response.dto';
 
 /**
  * VcApi API conforms to W3C vc-api
@@ -376,7 +377,7 @@ export class VcApiController {
 
   /**
    * Create a workflow
-   * 
+   *
    * @param createWorkflowRequestDto
    * @returns
    */
@@ -389,7 +390,9 @@ export class VcApiController {
   @ApiBody({ type: CreateWorkflowRequestDto })
   @ApiCreatedResponse({ type: CreateWorkflowSuccessDto })
   @ApiConflictResponse({ type: ConflictErrorResponseDto })
-  async createWorkflow(@Body() createWorkflowRequestDto: CreateWorkflowRequestDto): Promise<CreateWorkflowSuccessDto> {
+  async createWorkflow(
+    @Body() createWorkflowRequestDto: CreateWorkflowRequestDto
+  ): Promise<CreateWorkflowSuccessDto> {
     return this.workflowService.createWorkflow(createWorkflowRequestDto);
   }
 
@@ -405,11 +408,9 @@ export class VcApiController {
       'Gets the configuration of an existing workflow and returns it in the response body.\n' +
       'See https://w3c-ccg.github.io/vc-api/#get-workflow-configuration'
   })
-  @ApiOkResponse({  type: CreateWorkflowSuccessDto })
+  @ApiOkResponse({ type: CreateWorkflowSuccessDto })
   @ApiConflictResponse({ type: NotFoundException })
-  async getWorkflow(
-    @Param('localWorkflowId') localWorkflowId: string
-  ): Promise<CreateWorkflowSuccessDto> {
+  async getWorkflow(@Param('localWorkflowId') localWorkflowId: string): Promise<CreateWorkflowSuccessDto> {
     return this.workflowService.getWorkflow(localWorkflowId);
   }
 
@@ -435,6 +436,36 @@ export class VcApiController {
   }
 
   /**
+   * Participate in a workflow exchange
+   *
+   * @param createWorkflowRequestDto
+   * @returns
+   */
+  @Post('/workflows/:localWorkflowId/exchanges/:localExchangeId')
+  @ApiOperation({
+    description:
+      'Participate in an exchange.\n' +
+      'Posting an empty body will start the exchange or return what the exchange is expecting to complete the next step.\n' +
+      'See https://w3c-ccg.github.io/vc-api/#participate-in-an-exchange'
+  })
+  // @ApiBody({ type: VerifiablePresentationDto , required: false})
+  @ApiOkResponse({
+    description: 'Exchange Progressed',
+    type: WfExchangeResponseDto
+  })
+  async participateInWorkflowExchange(
+    @Param('localWorkflowId') localWorkflowId: string,
+    @Param('localExchangeId') localExchangeId: string,
+    @Body() verifiablePresentation?: VerifiablePresentationDto
+  ): Promise<WfExchangeResponseDto> {
+    return this.workflowService.participateInExchange(
+      localWorkflowId,
+      localExchangeId,
+      verifiablePresentation
+    );
+  }
+
+  /**
    * Get exchange state of a workflow
    * 
    * @param localWorkflowId
@@ -447,7 +478,7 @@ export class VcApiController {
       'Gets the state of an existing exchange and returns it in the response body..\n' +
       'See https://w3c-ccg.github.io/vc-api/#get-exchange-state'
   })
-  @ApiOkResponse({  type: ExchangeStateDto })
+  @ApiOkResponse({ type: ExchangeStateDto })
   @ApiConflictResponse({ type: NotFoundException })
   async getExchangeState(
     @Param('localWorkflowId') localWorkflowId: string,
