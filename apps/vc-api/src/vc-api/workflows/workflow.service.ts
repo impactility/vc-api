@@ -14,6 +14,7 @@ import { ExchangeResponseDto } from './dtos/exchange-response.dto';
 import { CallbackDto } from './dtos/callback.dto';
 import { HttpService } from '@nestjs/axios';
 import { validate } from 'class-validator';
+import { ConfigService } from '@nestjs/config';
 
 export class WorkflowService {
   private readonly logger = new Logger(WorkflowService.name, { timestamp: true });
@@ -24,7 +25,8 @@ export class WorkflowService {
     private workflowRepository: Repository<WorkflowEntity>,
     @InjectRepository(WfExchangeEntity)
     private exchangeRepository: Repository<WfExchangeEntity>,
-    private httpService: HttpService
+    private httpService: HttpService,
+    private configService: ConfigService
   ) {}
 
   public async createWorkflow(
@@ -65,8 +67,14 @@ export class WorkflowService {
     const firstStep = workflow.getInitialStep();
     const exchange = new WfExchangeEntity(localWorkflowId, firstStep, workflow.initialStep);
     await this.exchangeRepository.save(exchange);
+    const baseUrl = this.configService.get('BASE_URL');
+    const localExchangeId = exchange.exchangeId;
+    const removeTrailingSlash = (str) => (str.endsWith('/') ? str.slice(0, -1) : str);
+    const exchangeId = `${removeTrailingSlash(
+      baseUrl
+    )}/workflows/${localWorkflowId}/exchanges/${localExchangeId}`;
     return {
-      exchangeId: exchange.exchangeId,
+      exchangeId: exchangeId,
       step: workflow.initialStep,
       state: exchange.state
     };
