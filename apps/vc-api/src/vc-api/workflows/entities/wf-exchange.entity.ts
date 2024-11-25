@@ -19,8 +19,8 @@ import { ExchangeVerificationResultDto } from '../dtos/exchange-verification-res
 /**
  * NEW exchange entity (for workflows)
  */
-@Entity('workflow_exchanges')
-export class ExchangeEntity {
+@Entity()
+export class WfExchangeEntity {
   constructor(workflowId: string, initialStepDefinition: WorkflowStepDefinitionDto, initialStepId: string) {
     this.exchangeId = uuidv4();
     this.workflowId = workflowId;
@@ -49,7 +49,12 @@ export class ExchangeEntity {
     verifier: SubmissionVerifier,
     nextStep: WorkflowStepDefinitionDto,
     nextStepId: string
-  ): Promise<{ response: ExchangeResponseDto; errors: string[]; callback: CallbackConfiguration[], verificationResult: ExchangeVerificationResultDto }> {
+  ): Promise<{
+    response: ExchangeResponseDto;
+    errors: string[];
+    callback: CallbackConfiguration[];
+    verificationResult: ExchangeVerificationResultDto;
+  }> {
     // Get current step
     const currentStep = this.getCurrentStep();
     // Pass presentation to current step to process
@@ -128,7 +133,7 @@ export class ExchangeEntity {
   }
 
   public getStep(stepId: string): QueryExchangeStep | IssuanceExchangeStep {
-    const step = this.steps.find(step => step.stepId === stepId);
-    return step ;
+    const step = this.steps.find((step) => step.stepId === stepId);
+    return step;
   }
 }

@@ -5,7 +5,7 @@ import { Repository } from 'typeorm';
 import { CreateWorkflowRequestDto } from './dtos/create-workflow-request.dto';
 import { CreateExchangeDto } from './dtos/create-exchange.dto';
 import { CreateExchangeSuccessDto } from './dtos/create-exchange-success.dto';
-import { ExchangeEntity } from './entities/exchange.entity';
+import { WfExchangeEntity } from './entities/wf-exchange.entity';
 import { CreateWorkflowSuccessDto } from './dtos/create-workflow-success.dto';
 import { ExchangeStateDto } from './dtos/exchange-state.dto';
 import { VerifiablePresentationDto } from '../credentials/dtos/verifiable-presentation.dto';
@@ -17,17 +17,19 @@ import { validate } from 'class-validator';
 
 export class WorkflowService {
   private readonly logger = new Logger(WorkflowService.name, { timestamp: true });
-  
+
   constructor(
     private vpSubmissionVerifierService: VpSubmissionVerifierService,
     @InjectRepository(WorkflowEntity)
     private workflowRepository: Repository<WorkflowEntity>,
-    @InjectRepository(ExchangeEntity)
-    private exchangeRepository: Repository<ExchangeEntity>,
+    @InjectRepository(WfExchangeEntity)
+    private exchangeRepository: Repository<WfExchangeEntity>,
     private httpService: HttpService
   ) {}
 
-  public async createWorkflow(createWorkflowRequestDto: CreateWorkflowRequestDto): Promise<CreateWorkflowSuccessDto> {
+  public async createWorkflow(
+    createWorkflowRequestDto: CreateWorkflowRequestDto
+  ): Promise<CreateWorkflowSuccessDto> {
     if (await this.workflowRepository.findOneBy({ workflowId: createWorkflowRequestDto.config.id })) {
       throw new ConflictException(`workflowId='${createWorkflowRequestDto.config.id}' already exists`);
     }
@@ -40,9 +42,9 @@ export class WorkflowService {
   public async getWorkflow(localWorkflowId: string): Promise<CreateWorkflowSuccessDto> {
     const workflow = await this.workflowRepository.findOneBy({ workflowId: localWorkflowId });
     if (workflow == null) {
-      throw new NotFoundException(`workflowId='${localWorkflowId}' does not exist`); 
+      throw new NotFoundException(`workflowId='${localWorkflowId}' does not exist`);
     }
-    const workflowResponse : CreateWorkflowSuccessDto = {
+    const workflowResponse: CreateWorkflowSuccessDto = {
       config: {
         steps: workflow.workflowSteps,
         initialStep: workflow.initialStep,
@@ -58,32 +60,30 @@ export class WorkflowService {
   ): Promise<CreateExchangeSuccessDto> {
     const workflow = await this.workflowRepository.findOneBy({ workflowId: localWorkflowId });
     if (workflow == null) {
-      throw new NotFoundException(`workflowId='${localWorkflowId}' does not exist`); 
+      throw new NotFoundException(`workflowId='${localWorkflowId}' does not exist`);
     }
     const firstStep = workflow.getInitialStep();
-    const exchange = new ExchangeEntity(localWorkflowId, firstStep, workflow.initialStep);
+    const exchange = new WfExchangeEntity(localWorkflowId, firstStep, workflow.initialStep);
     await this.exchangeRepository.save(exchange);
     return {
       exchangeId: exchange.exchangeId,
       step: workflow.initialStep,
-      state: exchange.state,
+      state: exchange.state
     };
   }
 
-  public async getExchangeState(
-    localWorkflowId: string,
-    localExchangeId: string
-  ): Promise<ExchangeStateDto> {
-    const exchange = await this.exchangeRepository.findOneBy(
-      { workflowId: localWorkflowId, exchangeId: localExchangeId }
-    );
+  public async getExchangeState(localWorkflowId: string, localExchangeId: string): Promise<ExchangeStateDto> {
+    const exchange = await this.exchangeRepository.findOneBy({
+      workflowId: localWorkflowId,
+      exchangeId: localExchangeId
+    });
     if (exchange == null) {
       throw new NotFoundException(`exchangeId='${localExchangeId}' does not exist`);
     }
     return {
       exchangeId: localExchangeId,
       state: exchange.state
-    }
+    };
   }
 
   public async participateInExchange(
@@ -91,16 +91,17 @@ export class WorkflowService {
     localExchangeId: string,
     presentation: VerifiablePresentationDto
   ): Promise<ExchangeResponseDto> {
-    const exchange = await this.exchangeRepository.findOneBy(
-      { workflowId: localWorkflowId, exchangeId: localExchangeId }
-    );
+    const exchange = await this.exchangeRepository.findOneBy({
+      workflowId: localWorkflowId,
+      exchangeId: localExchangeId
+    });
     if (exchange == null) {
       throw new NotFoundException(`exchangeId='${localExchangeId}' does not exist`);
     }
 
     const workflow = await this.workflowRepository.findOneBy({ workflowId: localWorkflowId });
     if (workflow == null) {
-      throw new NotFoundException(`workflowId='${localWorkflowId}' does not exist`); 
+      throw new NotFoundException(`workflowId='${localWorkflowId}' does not exist`);
     }
     const currentStep = exchange.getCurrentStep();
     const [nextStepDefinition, nextStepId] = workflow.getNextStep(currentStep.stepId);
@@ -109,7 +110,7 @@ export class WorkflowService {
       this.vpSubmissionVerifierService,
       nextStepDefinition,
       nextStepId
-    )
+    );
 
     if (exchangeRepsonse.errors.length > 0) {
       throw new BadRequestException(exchangeRepsonse.errors);
@@ -143,5 +144,4 @@ export class WorkflowService {
     // TODO: decide how to change logic here to handle callback error
     return exchangeRepsonse.response;
   }
-
 }
