@@ -21,7 +21,7 @@ import { VpSubmissionVerifierService } from './exchanges/vp-submission-verifier.
 import { VpSubmissionVerifierService as WfVpSubmissionVerifierService } from './workflows/vp-submission-verifier.service';
 import { WorkflowService } from './workflows/workflow.service';
 import { WorkflowEntity } from './workflows/entities/workflow.entity';
-import { ExchangeStep } from './workflows/types/exchange-step';
+import { WfExchangeEntity } from './workflows/entities/wf-exchange.entity';
 
 @Module({
   imports: [
@@ -34,13 +34,19 @@ import { ExchangeStep } from './workflows/types/exchange-step';
       PresentationReviewEntity,
       PresentationSubmissionEntity,
       WorkflowEntity,
-      ExchangeStep
+      WfExchangeEntity
     ]),
     ConfigModule,
     HttpModule
   ],
   controllers: [VcApiController],
-  providers: [CredentialsService, ExchangeService, VpSubmissionVerifierService, WorkflowService, WfVpSubmissionVerifierService],
+  providers: [
+    CredentialsService,
+    ExchangeService,
+    VpSubmissionVerifierService,
+    WorkflowService,
+    WfVpSubmissionVerifierService
+  ],
   exports: [CredentialsService, ExchangeService, WorkflowService]
 })
 export class VcApiModule {}
