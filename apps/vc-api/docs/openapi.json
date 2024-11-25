@@ -734,7 +734,7 @@
         "requestBody": {
           "required": true,
           "content": {
-            "application/json": { "schema": { "$ref": "#/components/schemas/VerifiablePresentationDto" } }
+            "application/json": { "schema": { "$ref": "#/components/schemas/ParticipateInExchangeDto" } }
           }
         },
         "responses": {
@@ -1423,6 +1423,19 @@
           "state": { "type": "string", "description": "Status of current exchange step" }
         },
         "required": ["exchangeId", "step", "state"]
+      },
+      "ParticipateInExchangeDto": {
+        "type": "object",
+        "properties": {
+          "verifiablePresentationRequest": {
+            "description": "Verifiable Presentation Request.\nShould conform to VP Request specification.",
+            "allOf": [{ "$ref": "#/components/schemas/VpRequestDto" }]
+          },
+          "verifiablePresentation": {
+            "description": "A JSON-LD Verifiable Presentation with a proof.",
+            "allOf": [{ "$ref": "#/components/schemas/VerifiablePresentationDto" }]
+          }
+        }
       },
       "ExchangeStateDto": {
         "type": "object",

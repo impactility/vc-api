@@ -58,6 +58,7 @@ import { CreateExchangeSuccessDto } from './workflows/dtos/create-exchange-succe
 import { ExchangeStateDto } from './workflows/dtos/exchange-state.dto';
 import { ExchangeStepStateDto } from './workflows/dtos/exchange-step-state.dto';
 import { ExchangeResponseDto as WfExchangeResponseDto } from './workflows/dtos/exchange-response.dto';
+import { ParticipateInExchangeDto } from './workflows/dtos/participate-in-exchange.dto';
 
 /**
  * VcApi API conforms to W3C vc-api
@@ -437,9 +438,6 @@ export class VcApiController {
 
   /**
    * Participate in a workflow exchange
-   *
-   * @param createWorkflowRequestDto
-   * @returns
    */
   @Post('/workflows/:localWorkflowId/exchanges/:localExchangeId')
   @ApiOperation({
@@ -448,7 +446,7 @@ export class VcApiController {
       'Posting an empty body will start the exchange or return what the exchange is expecting to complete the next step.\n' +
       'See https://w3c-ccg.github.io/vc-api/#participate-in-an-exchange'
   })
-  // @ApiBody({ type: VerifiablePresentationDto , required: false})
+  @ApiBody({ type: ParticipateInExchangeDto })
   @ApiOkResponse({
     description: 'Exchange Progressed',
     type: WfExchangeResponseDto
@@ -456,12 +454,12 @@ export class VcApiController {
   async participateInWorkflowExchange(
     @Param('localWorkflowId') localWorkflowId: string,
     @Param('localExchangeId') localExchangeId: string,
-    @Body() verifiablePresentation?: VerifiablePresentationDto
+    @Body() participateBody: ParticipateInExchangeDto
   ): Promise<WfExchangeResponseDto> {
     return this.workflowService.participateInExchange(
       localWorkflowId,
       localExchangeId,
-      verifiablePresentation
+      participateBody.verifiablePresentation
     );
   }
 
