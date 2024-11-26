@@ -59,6 +59,7 @@ import { ExchangeStateDto } from './workflows/dtos/exchange-state.dto';
 import { ExchangeStepStateDto } from './workflows/dtos/exchange-step-state.dto';
 import { ExchangeResponseDto as WfExchangeResponseDto } from './workflows/dtos/exchange-response.dto';
 import { ParticipateInExchangeDto } from './workflows/dtos/participate-in-exchange.dto';
+import { ExchangeStepStateDto } from './workflows/dtos/exchange-step-state.dto';
 
 /**
  * VcApi API conforms to W3C vc-api

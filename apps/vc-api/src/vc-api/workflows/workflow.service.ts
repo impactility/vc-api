@@ -16,6 +16,7 @@ import { HttpService } from '@nestjs/axios';
 import { validate } from 'class-validator';
 import { ExchangeStepStateDto } from './dtos/exchange-step-state.dto';
 import { ConfigService } from '@nestjs/config';
+import { ExchangeStepStateDto } from './dtos/exchange-step-state.dto';
 
 export class WorkflowService {
   private readonly logger = new Logger(WorkflowService.name, { timestamp: true });
