@@ -1,4 +1,5 @@
 import { BadRequestException, ConflictException, Logger, NotFoundException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { WorkflowEntity } from './entities/workflow.entity';
 import { Repository } from 'typeorm';
@@ -15,7 +16,6 @@ import { CallbackDto } from './dtos/callback.dto';
 import { HttpService } from '@nestjs/axios';
 import { validate } from 'class-validator';
 import { ExchangeStepStateDto } from './dtos/exchange-step-state.dto';
-import { ConfigService } from '@nestjs/config';
 
 export class WorkflowService {
   private readonly logger = new Logger(WorkflowService.name, { timestamp: true });
