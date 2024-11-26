@@ -56,6 +56,7 @@ import { WorkflowService } from './workflows/workflow.service';
 import { CreateWorkflowSuccessDto } from './workflows/dtos/create-workflow-success.dto';
 import { CreateExchangeSuccessDto } from './workflows/dtos/create-exchange-success.dto';
 import { ExchangeStateDto } from './workflows/dtos/exchange-state.dto';
+import { ExchangeStepStateDto } from './workflows/dtos/exchange-step-state.dto';
 
 /**
  * VcApi API conforms to W3C vc-api
@@ -395,7 +396,7 @@ export class VcApiController {
   /**
    * Get workflow config object
    * 
-   * @param createWorkflowRequestDto
+   * @param localWorkflowId
    * @returns
    */
   @Get('/workflows/:localWorkflowId')
@@ -415,7 +416,7 @@ export class VcApiController {
   /**
    * Create a new exchange from an existing workflow
    * 
-   * @param createWorkflowRequestDto
+   * @param localWorkflowId
    * @returns
    */
   @Post('/workflows/:localWorkflowId/exchanges')
@@ -436,7 +437,8 @@ export class VcApiController {
   /**
    * Get exchange state of a workflow
    * 
-   * @param createWorkflowRequestDto
+   * @param localWorkflowId
+   * @param localExchangeId
    * @returns
    */
   @Get('/workflows/:localWorkflowId/exchanges/:localExchangeId')
@@ -452,5 +454,29 @@ export class VcApiController {
     @Param('localExchangeId') localExchangeId: string
   ): Promise<ExchangeStateDto> {
     return this.workflowService.getExchangeState(localWorkflowId, localExchangeId);
+  }
+
+  /**
+   * Get exchange step state of a workflow
+   * 
+   * @param localWorkflowId
+   * @param localExchangeId
+   * @param localStepId
+   * @returns 
+   */
+  @Get('/workflows/:localWorkflowId/exchanges/:localExchangeId/step/:localStepId')
+  @ApiOperation({
+    description:
+      'Gets the state of an existing exchange and returns it in the response body..\n' +
+      'See https://w3c-ccg.github.io/vc-api/#get-exchange-state'
+  })
+  @ApiOkResponse({  type: ExchangeStepStateDto })
+  @ApiConflictResponse({ type: NotFoundException })
+  async getExchangeStep(
+    @Param('localWorkflowId') localWorkflowId: string,
+    @Param('localExchangeId') localExchangeId: string,
+    @Param('localStepId') localStepId:string
+  ): Promise<ExchangeStepStateDto> {
+    return this.workflowService.getExchangeStep(localWorkflowId, localExchangeId, localStepId);
   }
 }
