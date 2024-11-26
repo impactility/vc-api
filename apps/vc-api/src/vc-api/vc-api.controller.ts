@@ -56,7 +56,6 @@ import { WorkflowService } from './workflows/workflow.service';
 import { CreateWorkflowSuccessDto } from './workflows/dtos/create-workflow-success.dto';
 import { CreateExchangeSuccessDto } from './workflows/dtos/create-exchange-success.dto';
 import { ExchangeStateDto } from './workflows/dtos/exchange-state.dto';
-import { ExchangeStepStateDto } from './workflows/dtos/exchange-step-state.dto';
 import { ExchangeResponseDto as WfExchangeResponseDto } from './workflows/dtos/exchange-response.dto';
 import { ParticipateInExchangeDto } from './workflows/dtos/participate-in-exchange.dto';
 import { ExchangeStepStateDto } from './workflows/dtos/exchange-step-state.dto';
