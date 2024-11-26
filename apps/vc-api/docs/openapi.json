@@ -723,6 +723,44 @@
       }
     },
     "/v1/vc-api/workflows/{localWorkflowId}/exchanges/{localExchangeId}": {
+      "post": {
+        "operationId": "VcApiController_participateInWorkflowExchange",
+        "summary": "",
+        "description": "Participate in an exchange.\nPosting an empty body will start the exchange or return what the exchange is expecting to complete the next step.\nSee https://w3c-ccg.github.io/vc-api/#participate-in-an-exchange",
+        "parameters": [
+          { "name": "localWorkflowId", "required": true, "in": "path", "schema": { "type": "string" } },
+          { "name": "localExchangeId", "required": true, "in": "path", "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/ParticipateInExchangeDto" } }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Exchange Progressed",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ExchangeResponseDto" } }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/BadRequestErrorResponseDto" } }
+            }
+          },
+          "500": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/InternalServerErrorResponseDto" }
+              }
+            }
+          }
+        },
+        "tags": ["vc-api"]
+      },
       "get": {
         "operationId": "VcApiController_getExchangeState",
         "summary": "",
@@ -1289,20 +1327,20 @@
       "ExchangeResponseDto": {
         "type": "object",
         "properties": {
-          "vpRequest": {
+          "verifiablePresentationRequest": {
             "description": "Verifiable Presentation Request.\nShould conform to VP-Request specification.\nWill be returned if a VP is required to obtain more information from requester\nMay not be returned if no further information is required (for example, at the end of the workflow)",
             "allOf": [{ "$ref": "#/components/schemas/VpRequestDto" }]
           },
-          "vp": {
+          "verifiablePresentation": {
             "description": "If it is an issuance response, then a vp may be provided",
             "allOf": [{ "$ref": "#/components/schemas/VerifiablePresentationDto" }]
           },
-          "processingInProgress": {
-            "type": "boolean",
-            "description": "True if an exchange submission is currently being processed or reviewed asyncronously"
+          "redirectUrl": {
+            "type": "string",
+            "description": "The URL the exchange wishes to redirect the client to."
           }
         },
-        "required": ["processingInProgress"]
+        "required": ["redirectUrl"]
       },
       "PresentationSubmissionSecureDto": { "type": "object", "properties": {} },
       "TransactionDto": {
@@ -1385,6 +1423,19 @@
           "state": { "type": "string", "description": "Status of current exchange step" }
         },
         "required": ["exchangeId", "step", "state"]
+      },
+      "ParticipateInExchangeDto": {
+        "type": "object",
+        "properties": {
+          "verifiablePresentationRequest": {
+            "description": "Verifiable Presentation Request.\nShould conform to VP Request specification.",
+            "allOf": [{ "$ref": "#/components/schemas/VpRequestDto" }]
+          },
+          "verifiablePresentation": {
+            "description": "A JSON-LD Verifiable Presentation with a proof.",
+            "allOf": [{ "$ref": "#/components/schemas/VerifiablePresentationDto" }]
+          }
+        }
       },
       "ExchangeStateDto": {
         "type": "object",
