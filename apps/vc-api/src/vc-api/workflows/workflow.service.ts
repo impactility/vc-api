@@ -92,14 +92,14 @@ export class WorkflowService {
     return {
       exchangeId: localExchangeId,
       step: exchange.steps[-1].stepId,
-      state: exchange.state,
+      state: exchange.state
     };
   }
 
   public async participateInExchange(
     localWorkflowId: string,
     localExchangeId: string,
-    presentation: VerifiablePresentationDto
+    presentation?: VerifiablePresentationDto
   ): Promise<ExchangeResponseDto> {
     const exchange = await this.exchangeRepository.findOneBy({
       workflowId: localWorkflowId,
@@ -107,6 +107,11 @@ export class WorkflowService {
     });
     if (exchange == null) {
       throw new NotFoundException(`exchangeId='${localExchangeId}' does not exist`);
+    }
+    // From: https://w3c-ccg.github.io/vc-api/#participate-in-an-exchange
+    // "Posting an empty body will start the exchange or return what the exchange is expecting to complete the next step."
+    if (presentation === undefined) {
+      return exchange.getCurrentStepRequirements();
     }
 
     const workflow = await this.workflowRepository.findOneBy({ workflowId: localWorkflowId });
@@ -174,7 +179,7 @@ export class WorkflowService {
       exchangeId: localExchangeId,
       stepId: localStepId,
       step: stepInfo,
-      stepResponse: response,
+      stepResponse: response
     };
   }
 }

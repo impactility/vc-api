@@ -9,6 +9,7 @@ import {
   Controller,
   Get,
   HttpCode,
+  HttpStatus,
   Logger,
   NotFoundException,
   Param,
@@ -399,7 +400,7 @@ export class VcApiController {
 
   /**
    * Get workflow config object
-   * 
+   *
    * @param localWorkflowId
    * @returns
    */
@@ -417,7 +418,7 @@ export class VcApiController {
 
   /**
    * Create a new exchange from an existing workflow
-   * 
+   *
    * @param localWorkflowId
    * @returns
    */
@@ -451,6 +452,7 @@ export class VcApiController {
     description: 'Exchange Progressed',
     type: WfExchangeResponseDto
   })
+  @HttpCode(HttpStatus.OK)
   async participateInWorkflowExchange(
     @Param('localWorkflowId') localWorkflowId: string,
     @Param('localExchangeId') localExchangeId: string,
@@ -465,7 +467,7 @@ export class VcApiController {
 
   /**
    * Get exchange state of a workflow
-   * 
+   *
    * @param localWorkflowId
    * @param localExchangeId
    * @returns
@@ -487,11 +489,11 @@ export class VcApiController {
 
   /**
    * Get exchange step state of a workflow
-   * 
+   *
    * @param localWorkflowId
    * @param localExchangeId
    * @param localStepId
-   * @returns 
+   * @returns
    */
   @Get('/workflows/:localWorkflowId/exchanges/:localExchangeId/step/:localStepId')
   @ApiOperation({
@@ -499,12 +501,12 @@ export class VcApiController {
       'Gets the state of an existing exchange and returns it in the response body..\n' +
       'See https://w3c-ccg.github.io/vc-api/#get-exchange-state'
   })
-  @ApiOkResponse({  type: ExchangeStepStateDto })
+  @ApiOkResponse({ type: ExchangeStepStateDto })
   @ApiConflictResponse({ type: NotFoundException })
   async getExchangeStep(
     @Param('localWorkflowId') localWorkflowId: string,
     @Param('localExchangeId') localExchangeId: string,
-    @Param('localStepId') localStepId:string
+    @Param('localStepId') localStepId: string
   ): Promise<ExchangeStepStateDto> {
     return this.workflowService.getExchangeStep(localWorkflowId, localExchangeId, localStepId);
   }

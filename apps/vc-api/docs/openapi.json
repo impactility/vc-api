@@ -799,6 +799,47 @@
         },
         "tags": ["vc-api"]
       }
+    },
+    "/v1/vc-api/workflows/{localWorkflowId}/exchanges/{localExchangeId}/step/{localStepId}": {
+      "get": {
+        "operationId": "VcApiController_getExchangeStep",
+        "summary": "",
+        "description": "Gets the state of an existing exchange and returns it in the response body..\nSee https://w3c-ccg.github.io/vc-api/#get-exchange-state",
+        "parameters": [
+          { "name": "localWorkflowId", "required": true, "in": "path", "schema": { "type": "string" } },
+          { "name": "localExchangeId", "required": true, "in": "path", "schema": { "type": "string" } },
+          { "name": "localStepId", "required": true, "in": "path", "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ExchangeStepStateDto" } }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/BadRequestErrorResponseDto" } }
+            }
+          },
+          "409": {
+            "description": "",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/NotFoundException" } }
+            }
+          },
+          "500": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/InternalServerErrorResponseDto" }
+              }
+            }
+          }
+        },
+        "tags": ["vc-api"]
+      }
     }
   },
   "info": { "title": "VC-API", "description": "Sample VC-API", "version": "0.1", "contact": {} },
@@ -1441,9 +1482,23 @@
         "type": "object",
         "properties": {
           "exchangeId": { "type": "string", "description": "Exchange Id" },
+          "step": { "type": "string", "description": "Current step in the exchange" },
           "state": { "type": "string", "description": "Exchange status" }
         },
-        "required": ["exchangeId", "state"]
+        "required": ["exchangeId", "step", "state"]
+      },
+      "ExchangeStepStateDto": {
+        "type": "object",
+        "properties": {
+          "exchangeId": { "type": "string", "description": "Exchange Id" },
+          "stepId": { "type": "string", "description": "Step Id" },
+          "step": { "type": "object", "description": "Exchange step information" },
+          "stepResponse": {
+            "description": "Exchange step information",
+            "allOf": [{ "$ref": "#/components/schemas/ExchangeResponseDto" }]
+          }
+        },
+        "required": ["exchangeId", "stepId", "step", "stepResponse"]
       }
     }
   }
