@@ -12,6 +12,7 @@ import { ProvePresentationDto } from '../src/vc-api/credentials/dtos/prove-prese
 import { VerifiablePresentationDto } from '../src/vc-api/credentials/dtos/verifiable-presentation.dto';
 import { VpRequestDto } from '../src/vc-api/exchanges/dtos/vp-request.dto';
 import { ExchangeResponseDto } from '../src/vc-api/exchanges/dtos/exchange-response.dto';
+import { ExchangeResponseDto as WfExchangeResponseDto } from '../src/vc-api/workflows/dtos/exchange-response.dto';
 import { VpRequestQueryType } from '../src/vc-api/exchanges/types/vp-request-query-type';
 import { TransactionDto } from '../src/vc-api/exchanges/dtos/transaction.dto';
 import { SubmissionReviewDto } from '../src/vc-api/exchanges/dtos/submission-review.dto';
@@ -168,7 +169,7 @@ export class WalletClient {
     expectedQueryType: VpRequestQueryType
   ): Promise<VpRequestDto> {
     const startWorkflowResponse = await request(this.#app.getHttpServer()).post(exchangeEndpoint).expect(200);
-    const vpRequest = (startWorkflowResponse.body as ExchangeResponseDto).vpRequest;
+    const vpRequest = (startWorkflowResponse.body as WfExchangeResponseDto).verifiablePresentationRequest;
     expect(vpRequest).toBeDefined();
     const challenge = vpRequest.challenge;
     expect(challenge).toBeDefined();
