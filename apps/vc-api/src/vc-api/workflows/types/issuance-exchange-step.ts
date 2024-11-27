@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { VerifiablePresentation } from 'src/vc-api/exchanges/types/verifiable-presentation';
+import { VerifiablePresentation } from '../types/verifiable-presentation';
 import { CallbackConfiguration } from './callback-configuration';
 import { ExchangeStep } from './exchange-step';
 import { ExchangeResponseDto } from '../dtos/exchange-response.dto';

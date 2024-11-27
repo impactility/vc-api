@@ -12,6 +12,12 @@ export class ExchangeStateDto {
 
   @IsString()
   @ApiProperty({
+    description: 'Current step in the exchange'
+  })
+  step: string;
+  
+  @IsString()
+  @ApiProperty({
     description: 'Exchange status'
   })
   state: ExchangeState;

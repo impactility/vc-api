@@ -53,6 +53,6 @@ export class WorkflowEntity {
    */
   public getNextStep(currentStep: string): [WorkflowStepDefinitionDto, string] {
     const nextStep = this.workflowSteps[currentStep].nextStep;
-    return [this.workflowSteps[nextStep], nextStep];
+    return [nextStep ? this.workflowSteps[nextStep] : null, nextStep];
   }
 }
