@@ -21,13 +21,18 @@ import { ExchangeVerificationResultDto } from '../dtos/exchange-verification-res
  */
 @Entity()
 export class WfExchangeEntity {
-  constructor(workflowId: string, initialStepDefinition: WorkflowStepDefinitionDto, initialStepId: string) {
+  constructor(
+    workflowId: string,
+    initialStepDefinition: WorkflowStepDefinitionDto,
+    initialStepId: string,
+    baseUrl: string
+  ) {
     this.exchangeId = uuidv4();
     this.workflowId = workflowId;
     this.steps = [];
     this.state = ExchangeState.pending;
     if (initialStepDefinition) {
-      const initialStep = this.hydrateExchangeStep(initialStepDefinition, initialStepId);
+      const initialStep = this.hydrateExchangeStep(initialStepDefinition, initialStepId, baseUrl);
       this.steps.push(initialStep);
     }
   }
@@ -48,7 +53,8 @@ export class WfExchangeEntity {
     presentation: VerifiablePresentation,
     verifier: SubmissionVerifier,
     nextStep: WorkflowStepDefinitionDto,
-    nextStepId: string
+    nextStepId: string,
+    baseUrl: string
   ): Promise<{
     response: ExchangeResponseDto;
     errors: string[];
@@ -73,7 +79,7 @@ export class WfExchangeEntity {
 
     if (nextStep) {
       // As there are no errors, advance step
-      const hydratedNextStep = this.hydrateExchangeStep(nextStep, nextStepId);
+      const hydratedNextStep = this.hydrateExchangeStep(nextStep, nextStepId, baseUrl);
       this.steps.push(hydratedNextStep);
     } else {
       // if there are no next steps nad no errors, complete exchange
@@ -111,7 +117,7 @@ export class WfExchangeEntity {
   private hydrateExchangeStep(
     step: WorkflowStepDefinitionDto,
     stepId: string,
-    baseUrl?: string
+    baseUrl: string
   ): QueryExchangeStep | IssuanceExchangeStep {
     const serviceEndpoint = `${baseUrl}/workflows/${this.workflowId}/exchanges/${this.exchangeId}`;
     const interactServices = step.verifiablePresentationRequest.interactServices.map((serviceDef) => {
