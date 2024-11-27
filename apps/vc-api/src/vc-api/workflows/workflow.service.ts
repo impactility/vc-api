@@ -16,9 +16,11 @@ import { CallbackDto } from './dtos/callback.dto';
 import { HttpService } from '@nestjs/axios';
 import { validate } from 'class-validator';
 import { ExchangeStepStateDto } from './dtos/exchange-step-state.dto';
+import { API_DEFAULT_VERSION_PREFIX } from '../../setup';
 
 export class WorkflowService {
   private readonly logger = new Logger(WorkflowService.name, { timestamp: true });
+  private readonly baseUrlWithControllerPath: string;
 
   constructor(
     private vpSubmissionVerifierService: VpSubmissionVerifierService,
@@ -28,7 +30,12 @@ export class WorkflowService {
     private exchangeRepository: Repository<WfExchangeEntity>,
     private httpService: HttpService,
     private configService: ConfigService
-  ) {}
+  ) {
+    const baseUrl = this.configService.get('BASE_URL');
+    const removeTrailingSlash = (str) => (str.endsWith('/') ? str.slice(0, -1) : str);
+    const baseWithControllerPath = `${removeTrailingSlash(baseUrl)}/${API_DEFAULT_VERSION_PREFIX}/vc-api`;
+    this.baseUrlWithControllerPath = baseWithControllerPath;
+  }
 
   public async createWorkflow(
     createWorkflowRequestDto: CreateWorkflowRequestDto
@@ -66,14 +73,15 @@ export class WorkflowService {
       throw new NotFoundException(`workflowId='${localWorkflowId}' does not exist`);
     }
     const firstStep = workflow.getInitialStep();
-    const exchange = new WfExchangeEntity(localWorkflowId, firstStep, workflow.initialStep);
+    const exchange = new WfExchangeEntity(
+      localWorkflowId,
+      firstStep,
+      workflow.initialStep,
+      this.baseUrlWithControllerPath
+    );
     await this.exchangeRepository.save(exchange);
-    const baseUrl = this.configService.get('BASE_URL');
     const localExchangeId = exchange.exchangeId;
-    const removeTrailingSlash = (str) => (str.endsWith('/') ? str.slice(0, -1) : str);
-    const exchangeId = `${removeTrailingSlash(
-      baseUrl
-    )}/v1/vc-api/workflows/${localWorkflowId}/exchanges/${localExchangeId}`;
+    const exchangeId = `${this.baseUrlWithControllerPath}/workflows/${localWorkflowId}/exchanges/${localExchangeId}`;
     return {
       exchangeId: exchangeId,
       step: workflow.initialStep,
@@ -124,7 +132,8 @@ export class WorkflowService {
       presentation,
       this.vpSubmissionVerifierService,
       nextStepDefinition,
-      nextStepId
+      nextStepId,
+      this.baseUrlWithControllerPath
     );
 
     if (exchangeRepsonse.errors.length > 0) {
