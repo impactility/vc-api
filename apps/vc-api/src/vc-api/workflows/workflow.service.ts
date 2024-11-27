@@ -1,4 +1,5 @@
 import { BadRequestException, ConflictException, Logger, NotFoundException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { WorkflowEntity } from './entities/workflow.entity';
 import { Repository } from 'typeorm';
@@ -14,7 +15,7 @@ import { ExchangeResponseDto } from './dtos/exchange-response.dto';
 import { CallbackDto } from './dtos/callback.dto';
 import { HttpService } from '@nestjs/axios';
 import { validate } from 'class-validator';
-import { ConfigService } from '@nestjs/config';
+import { ExchangeStepStateDto } from './dtos/exchange-step-state.dto';
 
 export class WorkflowService {
   private readonly logger = new Logger(WorkflowService.name, { timestamp: true });
@@ -90,7 +91,8 @@ export class WorkflowService {
     }
     return {
       exchangeId: localExchangeId,
-      state: exchange.state
+      step: exchange.steps[-1].stepId,
+      state: exchange.state,
     };
   }
 
@@ -151,5 +153,28 @@ export class WorkflowService {
     ).catch((err) => this.logger.error(err));
     // TODO: decide how to change logic here to handle callback error
     return exchangeRepsonse.response;
+  }
+
+  public async getExchangeStep(
+    localWorkflowId: string,
+    localExchangeId: string,
+    localStepId: string
+  ): Promise<ExchangeStepStateDto> {
+    const exchange = await this.exchangeRepository.findOneBy({
+      workflowId: localWorkflowId,
+      exchangeId: localExchangeId
+    });
+    if (exchange == null) {
+      throw new NotFoundException(`exchangeId='${localExchangeId}' does not exist`);
+    }
+
+    const stepInfo = exchange.getStep(localStepId);
+    const response = stepInfo.getStepResponse();
+    return {
+      exchangeId: localExchangeId,
+      stepId: localStepId,
+      step: stepInfo,
+      stepResponse: response,
+    };
   }
 }
