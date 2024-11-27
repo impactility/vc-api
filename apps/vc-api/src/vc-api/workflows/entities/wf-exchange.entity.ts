@@ -15,6 +15,7 @@ import { IssuanceExchangeStep } from '../types/issuance-exchange-step';
 import { ExchangeResponseDto } from '../dtos/exchange-response.dto';
 import { CallbackConfiguration } from '../types/callback-configuration';
 import { ExchangeVerificationResultDto } from '../dtos/exchange-verification-result.dto';
+import { plainToInstance } from 'class-transformer';
 
 /**
  * NEW exchange entity (for workflows)
@@ -92,14 +93,28 @@ export class WfExchangeEntity {
    *
    */
   public getExchangeResponse(): ExchangeResponseDto {
-    // Get current step
     const currentStep = this.getCurrentStep();
-    // Return step status
     return currentStep.getStepResponse();
   }
 
   public getCurrentStep() {
-    return this.steps[-1];
+    return this.steps.at(-1);
+  }
+
+  public getCurrentStepRequirements(): ExchangeResponseDto {
+    const currentStep = this.getCurrentStep();
+    const vpRequestProperty: keyof QueryExchangeStep = 'vpRequest';
+    if (vpRequestProperty in currentStep) {
+      const response: { [K in keyof ExchangeResponseDto]: ExchangeResponseDto[K] } = {
+        verifiablePresentationRequest: currentStep.vpRequest
+      };
+      return plainToInstance(ExchangeResponseDto, response);
+    } else {
+      const response: { [K in keyof ExchangeResponseDto]: ExchangeResponseDto[K] } = {
+        redirectUrl: currentStep.holderRedirectUrl
+      };
+      return plainToInstance(ExchangeResponseDto, response);
+    }
   }
 
   /**
