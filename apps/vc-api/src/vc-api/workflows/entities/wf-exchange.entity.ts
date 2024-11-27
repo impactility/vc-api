@@ -55,6 +55,8 @@ export class WfExchangeEntity {
     callback: CallbackConfiguration[];
     verificationResult: ExchangeVerificationResultDto;
   }> {
+    // set the state to active
+    this.state = ExchangeState.active;
     // Get current step
     const currentStep = this.getCurrentStep();
     // Pass presentation to current step to process
@@ -69,9 +71,14 @@ export class WfExchangeEntity {
       };
     }
 
-    // As there are no errors, advance step
-    const hydratedNextStep = this.hydrateExchangeStep(nextStep, nextStepId);
-    this.steps.push(hydratedNextStep);
+    if (nextStep) {
+      // As there are no errors, advance step
+      const hydratedNextStep = this.hydrateExchangeStep(nextStep, nextStepId);
+      this.steps.push(hydratedNextStep);
+    } else {
+      // if there are no next steps nad no errors, complete exchange
+      this.state = ExchangeState.completed;
+    }
 
     return {
       response: this.getExchangeResponse(),
