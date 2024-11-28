@@ -119,7 +119,7 @@ export class WorkflowService {
     // From: https://w3c-ccg.github.io/vc-api/#participate-in-an-exchange
     // "Posting an empty body will start the exchange or return what the exchange is expecting to complete the next step."
     if (presentation === undefined) {
-      return exchange.getCurrentStepRequirements();
+      return exchange.getExchangeResponse();
     }
 
     const workflow = await this.workflowRepository.findOneBy({ workflowId: localWorkflowId });
