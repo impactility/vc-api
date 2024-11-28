@@ -74,7 +74,7 @@ export const residentCardWorkflowSuite = () => {
         issuanceExchangeContinuationEndpoint,
         didAuthVp,
         true,
-        true
+        false
       );
     }
     issuanceCallbackScope.done();
@@ -117,7 +117,7 @@ export const residentCardWorkflowSuite = () => {
       didAuthVp,
       false
     );
-    const issuedVc = secondContinuationResponse.vp.verifiableCredential[0];
+    const issuedVc = secondContinuationResponse.verifiablePresentation.verifiableCredential[0];
     expect(issuedVc).toBeDefined();
 
     // As verifier, configure presentation workflow
