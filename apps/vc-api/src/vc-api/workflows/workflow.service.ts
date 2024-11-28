@@ -33,7 +33,7 @@ export class WorkflowService {
   ) {
     const baseUrl = this.configService.get('BASE_URL');
     const removeTrailingSlash = (str) => (str.endsWith('/') ? str.slice(0, -1) : str);
-    const baseWithControllerPath = `${removeTrailingSlash(baseUrl)}/${API_DEFAULT_VERSION_PREFIX}/vc-api`;
+    const baseWithControllerPath = `${removeTrailingSlash(baseUrl)}${API_DEFAULT_VERSION_PREFIX}/vc-api`;
     this.baseUrlWithControllerPath = baseWithControllerPath;
   }
 
