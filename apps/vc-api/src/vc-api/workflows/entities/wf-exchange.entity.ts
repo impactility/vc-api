@@ -83,7 +83,7 @@ export class WfExchangeEntity {
       const hydratedNextStep = this.hydrateExchangeStep(nextStep, nextStepId, baseUrl);
       this.steps.push(hydratedNextStep);
     } else {
-      // if there are no next steps nad no errors, complete exchange
+      // if there are no next steps and no errors, complete exchange
       this.state = ExchangeState.completed;
     }
 
@@ -125,14 +125,14 @@ export class WfExchangeEntity {
     baseUrl: string
   ): QueryExchangeStep | IssuanceExchangeStep {
     const serviceEndpoint = `${baseUrl}/workflows/${this.workflowId}/exchanges/${this.exchangeId}`;
-    const interactServices = step.verifiablePresentationRequest.interactServices.map((serviceDef) => {
-      return {
-        type: serviceDef.type,
-        serviceEndpoint
-      };
-    });
     // Assuming that if step has a VPR, then it is query step
     if (step.verifiablePresentationRequest) {
+      const interactServices = step.verifiablePresentationRequest.interactServices.map((serviceDef) => {
+        return {
+          type: serviceDef.type,
+          serviceEndpoint
+        };
+      });
       const challenge = uuidv4();
       const vpRequest: VpRequestDto = {
         challenge,
