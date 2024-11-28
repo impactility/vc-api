@@ -190,16 +190,18 @@ export class WalletClient {
     expectsProcessionInProgress = false
   ) {
     const continueExchangeResponse = await request(this.#app.getHttpServer())
-      .put(exchangeContinuationEndpoint)
-      .send(vp)
+      .post(exchangeContinuationEndpoint)
+      .send({
+        verifiablePresentation: vp
+      })
       .expect(expectsProcessionInProgress ? 202 : 200);
-    expect(continueExchangeResponse.body.errors).toHaveLength(0);
+    const body = continueExchangeResponse.body as WfExchangeResponseDto;
     if (expectsVpRequest) {
-      expect(continueExchangeResponse.body.vpRequest).toBeDefined();
+      expect(body.verifiablePresentationRequest).toBeDefined();
     } else {
-      expect(continueExchangeResponse.body.vpRequest).toBeUndefined();
+      expect(body.verifiablePresentationRequest).toBeUndefined();
     }
-    return continueExchangeResponse.body as ExchangeResponseDto;
+    return body;
   }
 
   /**
