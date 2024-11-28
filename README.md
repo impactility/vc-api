@@ -9,11 +9,12 @@ This repository provides a NestJs  [VC API implementation](./apps/vc-api/) of th
 This is project is a Labs project under the [Open Wallet Foundation](https://openwallet.foundation/).
 
 ## Supporting Organizations
-In addition to being supported by the Open Wallet Foundation, this project is supported by the Elia Group and the Energy Web Foundation.
+In addition to being supported by the Open Wallet Foundation, this project is supported by the Elia Group, the Energy Web Foundation and Impactility.
 
 <p align="center">
   <a href="https://www.energyweb.org" target="blank"><img src="./EW.png" width="120" alt="Energy Web Foundation Logo" /></a>
   <a href="https://www.eliagroup.com/" target="blank"><img src="./EG.jpg" height="100" alt="Elia Group Logo" /></a>
+  <a href="https://impactility.com/" target="blank"><img src="./IM.png" height="80" alt="Impactility Logo" /></a>
 </p>
 
 ## Architecture
