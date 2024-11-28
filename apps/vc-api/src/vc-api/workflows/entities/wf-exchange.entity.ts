@@ -103,23 +103,13 @@ export class WfExchangeEntity {
     return currentStep.getStepResponse();
   }
 
-  public getCurrentStep() {
-    return this.steps.at(-1);
-  }
-
-  public getCurrentStepRequirements(): ExchangeResponseDto {
-    const currentStep = this.getCurrentStep();
+  public getCurrentStep(): QueryExchangeStep | IssuanceExchangeStep {
+    const currentStep = this.steps.at(-1);
     const vpRequestProperty: keyof QueryExchangeStep = 'vpRequest';
     if (vpRequestProperty in currentStep) {
-      const response: { [K in keyof ExchangeResponseDto]: ExchangeResponseDto[K] } = {
-        verifiablePresentationRequest: currentStep.vpRequest
-      };
-      return plainToInstance(ExchangeResponseDto, response);
+      return plainToInstance(QueryExchangeStep, currentStep);
     } else {
-      const response: { [K in keyof ExchangeResponseDto]: ExchangeResponseDto[K] } = {
-        redirectUrl: currentStep.holderRedirectUrl
-      };
-      return plainToInstance(ExchangeResponseDto, response);
+      return plainToInstance(IssuanceExchangeStep, currentStep);
     }
   }
 
