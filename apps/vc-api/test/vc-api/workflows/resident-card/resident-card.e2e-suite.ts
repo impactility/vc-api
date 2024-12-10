@@ -73,7 +73,7 @@ export const residentCardWorkflowSuite = () => {
       await walletClient.continueWorkflowExchange(
         issuanceExchangeContinuationEndpoint,
         didAuthVp,
-        true,
+        'redirectUrl',
         false
       );
     }
@@ -115,7 +115,7 @@ export const residentCardWorkflowSuite = () => {
     const secondContinuationResponse = await walletClient.continueWorkflowExchange(
       issuanceExchangeContinuationEndpoint,
       didAuthVp,
-      false
+      'verifiablePresentation'
     );
     const issuedVc = secondContinuationResponse.verifiablePresentation.verifiableCredential[0];
     expect(issuedVc).toBeDefined();
@@ -165,7 +165,7 @@ export const residentCardWorkflowSuite = () => {
     const vp = await walletClient.provePresentation({ presentation, options: presentationOptions });
 
     // Holder submits presentation
-    await walletClient.continueWorkflowExchange(presentationExchangeContinuationEndpoint, vp, false);
+    await walletClient.continueWorkflowExchange(presentationExchangeContinuationEndpoint, vp, 'empty');
     presentationCallbackScope.done();
   });
 };
