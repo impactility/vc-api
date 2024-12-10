@@ -187,14 +187,14 @@ export class WalletClient {
     exchangeContinuationEndpoint: string,
     vp: VerifiablePresentationDto,
     expectsVpRequest: boolean,
-    expectsProcessionInProgress = false
+    expectsProcessingInProgress = false
   ) {
     const continueExchangeResponse = await request(this.#app.getHttpServer())
       .post(exchangeContinuationEndpoint)
       .send({
         verifiablePresentation: vp
       })
-      .expect(expectsProcessionInProgress ? 202 : 200);
+      .expect(expectsProcessingInProgress ? 202 : 200);
     const body = continueExchangeResponse.body as WfExchangeResponseDto;
     if (expectsVpRequest) {
       expect(body.verifiablePresentationRequest).toBeDefined();
