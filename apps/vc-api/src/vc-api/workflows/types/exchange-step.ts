@@ -20,12 +20,20 @@ export abstract class ExchangeStep {
   constructor(stepId: string, callback: CallbackConfiguration[]) {
     this.stepId = stepId;
     this.callback = callback;
-    this.state = EXCHANGE_STEP_STATES.IN_PROGRESS;
+    this._state = EXCHANGE_STEP_STATES.IN_PROGRESS;
   }
 
   stepId: string;
-  state: ExchangeStepState;
+  private _state: ExchangeStepState;
   callback: CallbackConfiguration[];
+
+  public get state(): ExchangeStepState {
+    return this._state;
+  }
+
+  public final markComplete(): void {
+    this._state = EXCHANGE_STEP_STATES.COMPLETED;
+  }
 
   public abstract processPresentation(
     presentation: VerifiablePresentation,
