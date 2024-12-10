@@ -15,6 +15,7 @@ import {
   Param,
   Post,
   Put,
+  Req,
   Res
 } from '@nestjs/common';
 import {
@@ -31,7 +32,7 @@ import {
   ApiTags,
   getSchemaPath
 } from '@nestjs/swagger';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { CredentialsService } from './credentials/credentials.service';
 import { IssueCredentialDto } from './credentials/dtos/issue-credential.dto';
 import { VerifiableCredentialDto } from './credentials/dtos/verifiable-credential.dto';
@@ -456,11 +457,14 @@ export class VcApiController {
   async participateInWorkflowExchange(
     @Param('localWorkflowId') localWorkflowId: string,
     @Param('localExchangeId') localExchangeId: string,
-    @Body() participateBody: ParticipateInExchangeDto
+    @Body() participateBody: ParticipateInExchangeDto,
+    @Req() req: Request
   ): Promise<WfExchangeResponseDto> {
+    const fullUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
     return this.workflowService.participateInExchange(
       localWorkflowId,
       localExchangeId,
+      fullUrl,
       participateBody.verifiablePresentation
     );
   }

@@ -107,6 +107,7 @@ export class WorkflowService {
   public async participateInExchange(
     localWorkflowId: string,
     localExchangeId: string,
+    requestUrl: string,
     presentation?: VerifiablePresentationDto
   ): Promise<ExchangeResponseDto> {
     const exchange = await this.exchangeRepository.findOneBy({
@@ -143,6 +144,7 @@ export class WorkflowService {
     await this.exchangeRepository.save(exchange);
     const stepResult = exchange.getStep(currentStep.stepId);
     const body = CallbackDto.toDto(stepResult);
+    body.exchangeId = requestUrl;
 
     const validationErrors = await validate(body, {
       whitelist: true,
