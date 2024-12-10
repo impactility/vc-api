@@ -86,11 +86,12 @@ export const residentCardWorkflowSuite = () => {
       issuanceWorkflow.getWorkflowId(),
       localExchangeId
     );
-    const didAuthStep = exchangeState.step;
+    const issuanceStepId = exchangeState.step;
+    const didAuthStepId = issuanceWorkflow.getWorkflowDefinition().config.initialStep;
     const stepSubmission = await walletClient.getExchangeStepSubmission(
       issuanceWorkflow.getWorkflowId(),
       localExchangeId,
-      didAuthStep
+      didAuthStepId
     );
 
     // As the issuer, check the result of the transaction verification
@@ -107,7 +108,7 @@ export const residentCardWorkflowSuite = () => {
     await walletClient.addStepSubmissionReview(
       issuanceWorkflow.getWorkflowId(),
       localExchangeId,
-      didAuthStep,
+      issuanceStepId,
       submissionReview
     );
 
