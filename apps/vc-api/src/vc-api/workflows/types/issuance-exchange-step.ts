@@ -10,7 +10,6 @@ import { ExchangeResponseDto } from '../dtos/exchange-response.dto';
 import { ExchangeVerificationResultDto } from '../dtos/exchange-verification-result.dto';
 
 export class IssuanceExchangeStep extends ExchangeStep {
-
   constructor(stepId: string, callback: CallbackConfiguration[], holderRedirectUrl: string) {
     super(stepId, callback);
     this.holderRedirectUrl = holderRedirectUrl;
@@ -24,9 +23,16 @@ export class IssuanceExchangeStep extends ExchangeStep {
     this.issuedVP = issuanceVp;
   }
 
-  public processPresentation(): Promise<{ errors: string[], verificationResult: ExchangeVerificationResultDto }> {
+  /**
+   * An issuance exchange can process a presentation, but it won't take any action.
+   * It is essentially a "no op".
+   */
+  public processPresentation(): Promise<{
+    errors: string[];
+    verificationResult: ExchangeVerificationResultDto;
+  }> {
     return Promise.resolve({
-      errors: ['Issuance step does not support presentation processing'],
+      errors: [],
       verificationResult: null
     });
   }
