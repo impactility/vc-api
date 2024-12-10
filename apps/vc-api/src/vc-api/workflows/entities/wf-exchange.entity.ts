@@ -78,13 +78,15 @@ export class WfExchangeEntity {
       };
     }
 
-    if (nextStep) {
-      // As there are no errors, advance step
-      const hydratedNextStep = this.hydrateExchangeStep(nextStep, nextStepId, baseUrl);
-      this.steps.push(hydratedNextStep);
-    } else {
-      // if there are no next steps and no errors, complete exchange
-      this.state = ExchangeState.completed;
+    if (currentStep.isComplete) {
+      if (nextStep) {
+        // As current step is complete, advance step
+        const hydratedNextStep = this.hydrateExchangeStep(nextStep, nextStepId, baseUrl);
+        this.steps.push(hydratedNextStep);
+      } else {
+        // if there are no next steps, complete exchange
+        this.state = ExchangeState.completed;
+      }
     }
 
     return {

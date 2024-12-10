@@ -33,14 +33,15 @@ export class QueryExchangeStep extends ExchangeStep {
   public async processPresentation(
     presentation: VerifiablePresentation,
     verifier: SubmissionVerifier
-  ): Promise<{ errors: string[], verificationResult: ExchangeVerificationResultDto }> {
-    const verificationResult = await verifier.verifyVpRequestSubmission(
-      presentation,
-      this.vpRequest
-    );
+  ): Promise<{ errors: string[]; verificationResult: ExchangeVerificationResultDto }> {
+    const verificationResult = await verifier.verifyVpRequestSubmission(presentation, this.vpRequest);
 
     const errors = verificationResult.errors;
     this.presentationSubmission = new PresentationSubmission(presentation, verificationResult);
+    // If no errors, then assume that verification was successful and so query is complete
+    if (errors.length == 0) {
+      this.markComplete();
+    }
     return { errors, verificationResult };
   }
 
