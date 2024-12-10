@@ -21,6 +21,7 @@ import { PresentationDto } from '../src/vc-api/credentials/dtos/presentation.dto
 import { KeyPairDto } from '../src/key/dtos/key-pair.dto';
 import { KeyDescriptionDto } from 'src/key/dtos/key-description.dto';
 import { API_DEFAULT_VERSION_PREFIX } from '../src/setup';
+import { ExchangeStateDto } from 'src/vc-api/workflows/dtos/exchange-state.dto';
 
 const EXPECTED_RESPONSE_TYPE = {
   VpRequest: 'vpRequest',
@@ -236,7 +237,7 @@ export class WalletClient {
       .get(`${API_DEFAULT_VERSION_PREFIX}/vc-api/workflows/${localWorkflowId}/exchanges/${localExchangeId}`)
       .expect(200);
 
-    return exchangeState.body;
+    return exchangeState.body as ExchangeStateDto;
   }
 
   /**

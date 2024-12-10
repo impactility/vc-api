@@ -99,7 +99,7 @@ export class WorkflowService {
     }
     return {
       exchangeId: localExchangeId,
-      step: exchange.steps[-1].stepId,
+      step: exchange.getCurrentStep().stepId,
       state: exchange.state
     };
   }

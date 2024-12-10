@@ -82,11 +82,11 @@ export const residentCardWorkflowSuite = () => {
     // As the issuer, get the step submission
     const urlComponents = issuanceExchangeContinuationEndpoint.split('/');
     const localExchangeId = urlComponents.pop();
-    const { completedSteps } = await walletClient.getExchangeState(
+    const exchangeState = await walletClient.getExchangeState(
       issuanceWorkflow.getWorkflowId(),
       localExchangeId
     );
-    const didAuthStep = completedSteps[0];
+    const didAuthStep = exchangeState.step;
     const stepSubmission = await walletClient.getExchangeStepSubmission(
       issuanceWorkflow.getWorkflowId(),
       localExchangeId,
