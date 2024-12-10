@@ -21,6 +21,7 @@ export class IssuanceExchangeStep extends ExchangeStep {
 
   public addVP(issuanceVp: VerifiablePresentation): void {
     this.issuedVP = issuanceVp;
+    this.markComplete();
   }
 
   /**
