@@ -22,6 +22,14 @@ import { KeyPairDto } from '../src/key/dtos/key-pair.dto';
 import { KeyDescriptionDto } from 'src/key/dtos/key-description.dto';
 import { API_DEFAULT_VERSION_PREFIX } from '../src/setup';
 
+const EXPECTED_RESPONSE_TYPE = {
+  VpRequest: 'vpRequest',
+  RedirectUrl: 'redirectUrl',
+  VerifiablePresentation: 'verifiablePresentation',
+  Empty: 'empty' // An empty response isn't clearly in the spec but there may be a use for it
+} as const;
+type ExpectedResponseType = (typeof EXPECTED_RESPONSE_TYPE)[keyof typeof EXPECTED_RESPONSE_TYPE];
+
 /**
  * A wallet client for e2e tests
  */
@@ -186,7 +194,7 @@ export class WalletClient {
   async continueWorkflowExchange(
     exchangeContinuationEndpoint: string,
     vp: VerifiablePresentationDto,
-    expectsVpRequest: boolean,
+    expectedResponse: ExpectedResponseType,
     expectsProcessingInProgress = false
   ) {
     const continueExchangeResponse = await request(this.#app.getHttpServer())
@@ -195,12 +203,28 @@ export class WalletClient {
         verifiablePresentation: vp
       })
       .expect(expectsProcessingInProgress ? 202 : 200);
+
     const body = continueExchangeResponse.body as WfExchangeResponseDto;
-    if (expectsVpRequest) {
-      expect(body.verifiablePresentationRequest).toBeDefined();
-    } else {
-      expect(body.verifiablePresentationRequest).toBeUndefined();
+
+    switch (expectedResponse) {
+      case EXPECTED_RESPONSE_TYPE.VpRequest:
+        expect(body.verifiablePresentationRequest).toBeDefined();
+        break;
+      case EXPECTED_RESPONSE_TYPE.RedirectUrl:
+        expect(body.redirectUrl).toBeDefined();
+        break;
+      case EXPECTED_RESPONSE_TYPE.VerifiablePresentation:
+        expect(body.verifiablePresentation).toBeDefined();
+        break;
+      case EXPECTED_RESPONSE_TYPE.Empty:
+        expect(JSON.stringify(body)).toEqual('{}');
+        break;
+      default:
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars, no-case-declarations
+        const _exhaustiveCheck: never = expectedResponse;
+        throw new Error(`Unexpected response type: ${expectedResponse}`);
     }
+
     return body;
   }
 
