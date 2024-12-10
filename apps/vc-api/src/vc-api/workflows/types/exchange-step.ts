@@ -10,28 +10,27 @@ import { SubmissionVerifier } from './submission-verifier';
 import { ExchangeVerificationResultDto } from '../dtos/exchange-verification-result.dto';
 
 export const EXCHANGE_STEP_STATES = {
-  STARTED: 'started',
   IN_PROGRESS: 'in-progress',
   COMPLETED: 'completed'
 } as const;
 
-export type ExchangeStepState = typeof EXCHANGE_STEP_STATES[keyof typeof EXCHANGE_STEP_STATES];
+export type ExchangeStepState = (typeof EXCHANGE_STEP_STATES)[keyof typeof EXCHANGE_STEP_STATES];
 
 export abstract class ExchangeStep {
   constructor(stepId: string, callback: CallbackConfiguration[]) {
     this.stepId = stepId;
     this.callback = callback;
-    this.state = EXCHANGE_STEP_STATES.STARTED;
+    this.state = EXCHANGE_STEP_STATES.IN_PROGRESS;
   }
 
   stepId: string;
   state: ExchangeStepState;
   callback: CallbackConfiguration[];
-  
+
   public abstract processPresentation(
     presentation: VerifiablePresentation,
     verifier: SubmissionVerifier
-  ): Promise<{ errors: string[], verificationResult: ExchangeVerificationResultDto }>;
+  ): Promise<{ errors: string[]; verificationResult: ExchangeVerificationResultDto }>;
 
   public abstract getStepResponse(): ExchangeResponseDto;
 }
