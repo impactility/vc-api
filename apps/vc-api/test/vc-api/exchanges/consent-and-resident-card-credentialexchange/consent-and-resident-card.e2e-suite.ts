@@ -34,7 +34,7 @@ let issuedVPConsentCredential: VerifiablePresentationDto;
 let issuedVPResidentCard: VerifiablePresentationDto;
 let residentCardVC: VerifiableCredentialDto;
 
-export const consentAndResidentCardExchangeSuite = () => {
+export const consentAndResidentCardLegacyExchangeSuite = () => {
   beforeEach(async function () {
     // As issuer, configure credential issuance exchange
     // POST /exchanges

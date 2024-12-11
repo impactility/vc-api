@@ -71,3 +71,4 @@ common/autoinstallers/*/.npmrc
 dist
 .vscode/
 docker-compose.yml
+.aider*
