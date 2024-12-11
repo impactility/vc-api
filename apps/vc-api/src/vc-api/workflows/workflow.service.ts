@@ -33,7 +33,7 @@ export class WorkflowService {
   ) {
     const baseUrl = this.configService.get('BASE_URL');
     const removeTrailingSlash = (str) => (str.endsWith('/') ? str.slice(0, -1) : str);
-    const baseWithControllerPath = `${removeTrailingSlash(baseUrl)}/${API_DEFAULT_VERSION_PREFIX}/vc-api`;
+    const baseWithControllerPath = `${removeTrailingSlash(baseUrl)}${API_DEFAULT_VERSION_PREFIX}/vc-api`;
     this.baseUrlWithControllerPath = baseWithControllerPath;
   }
 
@@ -99,7 +99,7 @@ export class WorkflowService {
     }
     return {
       exchangeId: localExchangeId,
-      step: exchange.steps[-1].stepId,
+      step: exchange.getCurrentStep().stepId,
       state: exchange.state
     };
   }
@@ -107,6 +107,7 @@ export class WorkflowService {
   public async participateInExchange(
     localWorkflowId: string,
     localExchangeId: string,
+    requestUrl: string,
     presentation?: VerifiablePresentationDto
   ): Promise<ExchangeResponseDto> {
     const exchange = await this.exchangeRepository.findOneBy({
@@ -119,7 +120,7 @@ export class WorkflowService {
     // From: https://w3c-ccg.github.io/vc-api/#participate-in-an-exchange
     // "Posting an empty body will start the exchange or return what the exchange is expecting to complete the next step."
     if (presentation === undefined) {
-      return exchange.getCurrentStepRequirements();
+      return exchange.getExchangeResponse();
     }
 
     const workflow = await this.workflowRepository.findOneBy({ workflowId: localWorkflowId });
@@ -143,6 +144,7 @@ export class WorkflowService {
     await this.exchangeRepository.save(exchange);
     const stepResult = exchange.getStep(currentStep.stepId);
     const body = CallbackDto.toDto(stepResult);
+    body.exchangeId = requestUrl;
 
     const validationErrors = await validate(body, {
       whitelist: true,

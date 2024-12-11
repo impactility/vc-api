@@ -73,8 +73,8 @@ export const residentCardWorkflowSuite = () => {
       await walletClient.continueWorkflowExchange(
         issuanceExchangeContinuationEndpoint,
         didAuthVp,
-        true,
-        true
+        'redirectUrl',
+        false
       );
     }
     issuanceCallbackScope.done();
@@ -82,15 +82,16 @@ export const residentCardWorkflowSuite = () => {
     // As the issuer, get the step submission
     const urlComponents = issuanceExchangeContinuationEndpoint.split('/');
     const localExchangeId = urlComponents.pop();
-    const { completedSteps } = await walletClient.getExchangeState(
+    const exchangeState = await walletClient.getExchangeState(
       issuanceWorkflow.getWorkflowId(),
       localExchangeId
     );
-    const didAuthStep = completedSteps[0];
+    const issuanceStepId = exchangeState.step;
+    const didAuthStepId = issuanceWorkflow.getWorkflowDefinition().config.initialStep;
     const stepSubmission = await walletClient.getExchangeStepSubmission(
       issuanceWorkflow.getWorkflowId(),
       localExchangeId,
-      didAuthStep
+      didAuthStepId
     );
 
     // As the issuer, check the result of the transaction verification
@@ -107,7 +108,7 @@ export const residentCardWorkflowSuite = () => {
     await walletClient.addStepSubmissionReview(
       issuanceWorkflow.getWorkflowId(),
       localExchangeId,
-      didAuthStep,
+      issuanceStepId,
       submissionReview
     );
 
@@ -115,9 +116,9 @@ export const residentCardWorkflowSuite = () => {
     const secondContinuationResponse = await walletClient.continueWorkflowExchange(
       issuanceExchangeContinuationEndpoint,
       didAuthVp,
-      false
+      'verifiablePresentation'
     );
-    const issuedVc = secondContinuationResponse.vp.verifiableCredential[0];
+    const issuedVc = secondContinuationResponse.verifiablePresentation.verifiableCredential[0];
     expect(issuedVc).toBeDefined();
 
     // As verifier, configure presentation workflow
@@ -165,7 +166,7 @@ export const residentCardWorkflowSuite = () => {
     const vp = await walletClient.provePresentation({ presentation, options: presentationOptions });
 
     // Holder submits presentation
-    await walletClient.continueWorkflowExchange(presentationExchangeContinuationEndpoint, vp, false);
+    await walletClient.continueWorkflowExchange(presentationExchangeContinuationEndpoint, vp, 'empty');
     presentationCallbackScope.done();
   });
 };

@@ -9,20 +9,36 @@ import { VerifiablePresentation } from '../types/verifiable-presentation';
 import { SubmissionVerifier } from './submission-verifier';
 import { ExchangeVerificationResultDto } from '../dtos/exchange-verification-result.dto';
 
+export const EXCHANGE_STEP_STATES = {
+  IN_PROGRESS: 'in-progress',
+  COMPLETE: 'complete'
+} as const;
+
+export type ExchangeStepState = (typeof EXCHANGE_STEP_STATES)[keyof typeof EXCHANGE_STEP_STATES];
+
 export abstract class ExchangeStep {
   constructor(stepId: string, callback: CallbackConfiguration[]) {
     this.stepId = stepId;
     this.callback = callback;
+    this._state = EXCHANGE_STEP_STATES.IN_PROGRESS;
   }
 
   stepId: string;
-
+  private _state: ExchangeStepState;
   callback: CallbackConfiguration[];
-  
+
   public abstract processPresentation(
     presentation: VerifiablePresentation,
     verifier: SubmissionVerifier
-  ): Promise<{ errors: string[], verificationResult: ExchangeVerificationResultDto }>;
+  ): Promise<{ errors: string[]; verificationResult: ExchangeVerificationResultDto }>;
 
   public abstract getStepResponse(): ExchangeResponseDto;
+
+  public get isComplete(): boolean {
+    return this._state == EXCHANGE_STEP_STATES.COMPLETE;
+  }
+
+  protected markComplete(): void {
+    this._state = EXCHANGE_STEP_STATES.COMPLETE;
+  }
 }

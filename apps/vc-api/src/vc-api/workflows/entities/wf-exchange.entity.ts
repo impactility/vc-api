@@ -78,13 +78,15 @@ export class WfExchangeEntity {
       };
     }
 
-    if (nextStep) {
-      // As there are no errors, advance step
-      const hydratedNextStep = this.hydrateExchangeStep(nextStep, nextStepId, baseUrl);
-      this.steps.push(hydratedNextStep);
-    } else {
-      // if there are no next steps nad no errors, complete exchange
-      this.state = ExchangeState.completed;
+    if (currentStep.isComplete) {
+      if (nextStep) {
+        // As current step is complete, advance step
+        const hydratedNextStep = this.hydrateExchangeStep(nextStep, nextStepId, baseUrl);
+        this.steps.push(hydratedNextStep);
+      } else {
+        // if there are no next steps, complete exchange
+        this.state = ExchangeState.completed;
+      }
     }
 
     return {
@@ -103,23 +105,13 @@ export class WfExchangeEntity {
     return currentStep.getStepResponse();
   }
 
-  public getCurrentStep() {
-    return this.steps.at(-1);
-  }
-
-  public getCurrentStepRequirements(): ExchangeResponseDto {
-    const currentStep = this.getCurrentStep();
+  public getCurrentStep(): QueryExchangeStep | IssuanceExchangeStep {
+    const currentStep = this.steps.at(-1);
     const vpRequestProperty: keyof QueryExchangeStep = 'vpRequest';
     if (vpRequestProperty in currentStep) {
-      const response: { [K in keyof ExchangeResponseDto]: ExchangeResponseDto[K] } = {
-        verifiablePresentationRequest: currentStep.vpRequest
-      };
-      return plainToInstance(ExchangeResponseDto, response);
+      return plainToInstance(QueryExchangeStep, currentStep);
     } else {
-      const response: { [K in keyof ExchangeResponseDto]: ExchangeResponseDto[K] } = {
-        redirectUrl: currentStep.holderRedirectUrl
-      };
-      return plainToInstance(ExchangeResponseDto, response);
+      return plainToInstance(IssuanceExchangeStep, currentStep);
     }
   }
 
@@ -135,14 +127,14 @@ export class WfExchangeEntity {
     baseUrl: string
   ): QueryExchangeStep | IssuanceExchangeStep {
     const serviceEndpoint = `${baseUrl}/workflows/${this.workflowId}/exchanges/${this.exchangeId}`;
-    const interactServices = step.verifiablePresentationRequest.interactServices.map((serviceDef) => {
-      return {
-        type: serviceDef.type,
-        serviceEndpoint
-      };
-    });
     // Assuming that if step has a VPR, then it is query step
     if (step.verifiablePresentationRequest) {
+      const interactServices = step.verifiablePresentationRequest.interactServices.map((serviceDef) => {
+        return {
+          type: serviceDef.type,
+          serviceEndpoint
+        };
+      });
       const challenge = uuidv4();
       const vpRequest: VpRequestDto = {
         challenge,

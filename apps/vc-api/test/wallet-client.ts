@@ -21,6 +21,15 @@ import { PresentationDto } from '../src/vc-api/credentials/dtos/presentation.dto
 import { KeyPairDto } from '../src/key/dtos/key-pair.dto';
 import { KeyDescriptionDto } from 'src/key/dtos/key-description.dto';
 import { API_DEFAULT_VERSION_PREFIX } from '../src/setup';
+import { ExchangeStateDto } from 'src/vc-api/workflows/dtos/exchange-state.dto';
+
+const EXPECTED_RESPONSE_TYPE = {
+  VpRequest: 'vpRequest',
+  RedirectUrl: 'redirectUrl',
+  VerifiablePresentation: 'verifiablePresentation',
+  Empty: 'empty' // An empty response isn't clearly in the spec but there may be a use for it
+} as const;
+type ExpectedResponseType = (typeof EXPECTED_RESPONSE_TYPE)[keyof typeof EXPECTED_RESPONSE_TYPE];
 
 /**
  * A wallet client for e2e tests
@@ -186,20 +195,38 @@ export class WalletClient {
   async continueWorkflowExchange(
     exchangeContinuationEndpoint: string,
     vp: VerifiablePresentationDto,
-    expectsVpRequest: boolean,
-    expectsProcessionInProgress = false
+    expectedResponse: ExpectedResponseType,
+    expectsProcessingInProgress = false
   ) {
     const continueExchangeResponse = await request(this.#app.getHttpServer())
-      .put(exchangeContinuationEndpoint)
-      .send(vp)
-      .expect(expectsProcessionInProgress ? 202 : 200);
-    expect(continueExchangeResponse.body.errors).toHaveLength(0);
-    if (expectsVpRequest) {
-      expect(continueExchangeResponse.body.vpRequest).toBeDefined();
-    } else {
-      expect(continueExchangeResponse.body.vpRequest).toBeUndefined();
+      .post(exchangeContinuationEndpoint)
+      .send({
+        verifiablePresentation: vp
+      })
+      .expect(expectsProcessingInProgress ? 202 : 200);
+
+    const body = continueExchangeResponse.body as WfExchangeResponseDto;
+
+    switch (expectedResponse) {
+      case EXPECTED_RESPONSE_TYPE.VpRequest:
+        expect(body.verifiablePresentationRequest).toBeDefined();
+        break;
+      case EXPECTED_RESPONSE_TYPE.RedirectUrl:
+        expect(body.redirectUrl).toBeDefined();
+        break;
+      case EXPECTED_RESPONSE_TYPE.VerifiablePresentation:
+        expect(body.verifiablePresentation).toBeDefined();
+        break;
+      case EXPECTED_RESPONSE_TYPE.Empty:
+        expect(JSON.stringify(body)).toEqual('{}');
+        break;
+      default:
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars, no-case-declarations
+        const _exhaustiveCheck: never = expectedResponse;
+        throw new Error(`Unexpected response type: ${expectedResponse}`);
     }
-    return continueExchangeResponse.body as ExchangeResponseDto;
+
+    return body;
   }
 
   /**
@@ -210,7 +237,7 @@ export class WalletClient {
       .get(`${API_DEFAULT_VERSION_PREFIX}/vc-api/workflows/${localWorkflowId}/exchanges/${localExchangeId}`)
       .expect(200);
 
-    return exchangeState.body;
+    return exchangeState.body as ExchangeStateDto;
   }
 
   /**
