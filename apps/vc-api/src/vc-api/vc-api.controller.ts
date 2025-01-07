@@ -499,7 +499,7 @@ export class VcApiController {
    * @param localStepId
    * @returns
    */
-  @Get('/workflows/:localWorkflowId/exchanges/:localExchangeId/step/:localStepId')
+  @Get('/workflows/:localWorkflowId/exchanges/:localExchangeId/steps/:localStepId')
   @ApiOperation({
     description:
       'Gets the state of an existing exchange and returns it in the response body..\n' +

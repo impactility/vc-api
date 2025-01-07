@@ -11,7 +11,7 @@ import { ExchangeVerificationResultDto } from '../dtos/exchange-verification-res
 
 export class IssuanceExchangeStep extends ExchangeStep {
   constructor(stepId: string, callback: CallbackConfiguration[], holderRedirectUrl: string) {
-    super(stepId, callback);
+    super(stepId, callback, 'IssuanceExchangeStep');
     this.holderRedirectUrl = holderRedirectUrl;
   }
 
