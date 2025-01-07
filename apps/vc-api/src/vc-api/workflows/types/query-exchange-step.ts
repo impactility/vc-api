@@ -15,7 +15,7 @@ import { ExchangeVerificationResultDto } from '../dtos/exchange-verification-res
 
 export class QueryExchangeStep extends ExchangeStep {
   constructor(stepId: string, vpRequest: VpRequestDto, callback: CallbackConfiguration[]) {
-    super(stepId, callback);
+    super(stepId, callback, 'QueryExchangeStep');
     this.vpRequest = vpRequest;
   }
 

@@ -22,6 +22,7 @@ import { KeyPairDto } from '../src/key/dtos/key-pair.dto';
 import { KeyDescriptionDto } from 'src/key/dtos/key-description.dto';
 import { API_DEFAULT_VERSION_PREFIX } from '../src/setup';
 import { ExchangeStateDto } from 'src/vc-api/workflows/dtos/exchange-state.dto';
+import { ExchangeStepStateDto } from 'src/vc-api/workflows/dtos/exchange-step-state.dto';
 
 const EXPECTED_RESPONSE_TYPE = {
   VpRequest: 'vpRequest',
@@ -250,7 +251,7 @@ export class WalletClient {
       )
       .expect(200);
 
-    return exchangeParticipationResponse.body as TransactionDto;
+    return exchangeParticipationResponse.body as ExchangeStepStateDto;
   }
 
   /**
