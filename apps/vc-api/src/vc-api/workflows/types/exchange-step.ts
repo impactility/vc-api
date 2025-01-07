@@ -17,15 +17,17 @@ export const EXCHANGE_STEP_STATES = {
 export type ExchangeStepState = (typeof EXCHANGE_STEP_STATES)[keyof typeof EXCHANGE_STEP_STATES];
 
 export abstract class ExchangeStep {
-  constructor(stepId: string, callback: CallbackConfiguration[]) {
+  constructor(stepId: string, callback: CallbackConfiguration[], type: string) {
     this.stepId = stepId;
     this.callback = callback;
+    this.type = type;
     this._state = EXCHANGE_STEP_STATES.IN_PROGRESS;
   }
 
   stepId: string;
   private _state: ExchangeStepState;
   callback: CallbackConfiguration[];
+  type: string;
 
   public abstract processPresentation(
     presentation: VerifiablePresentation,
