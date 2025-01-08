@@ -800,7 +800,7 @@
         "tags": ["vc-api"]
       }
     },
-    "/v1/vc-api/workflows/{localWorkflowId}/exchanges/{localExchangeId}/step/{localStepId}": {
+    "/v1/vc-api/workflows/{localWorkflowId}/exchanges/{localExchangeId}/steps/{localStepId}": {
       "get": {
         "operationId": "VcApiController_getExchangeStep",
         "summary": "",
