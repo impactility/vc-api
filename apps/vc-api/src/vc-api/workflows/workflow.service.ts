@@ -132,7 +132,6 @@ export class WorkflowService {
     const exchangeRepsonse = await exchange.participateInExchange(
       presentation,
       this.vpSubmissionVerifierService,
-      currentStep,
       nextStepDefinition,
       nextStepId,
       this.baseUrlWithControllerPath
@@ -142,8 +141,6 @@ export class WorkflowService {
       throw new BadRequestException(exchangeRepsonse.errors);
     }
 
-    const stepIndex = exchange.steps.findIndex((step) => step.stepId === currentStep.stepId);
-    exchange.steps[stepIndex] = currentStep;
     await this.exchangeRepository.save(exchange);
     const stepResult = exchange.getStep(currentStep.stepId);
     const body = CallbackDto.toDto(stepResult);

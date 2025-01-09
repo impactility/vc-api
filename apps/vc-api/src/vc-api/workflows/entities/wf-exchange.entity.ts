@@ -53,7 +53,6 @@ export class WfExchangeEntity {
   public async participateInExchange(
     presentation: VerifiablePresentation,
     verifier: SubmissionVerifier,
-    currentStep: QueryExchangeStep | IssuanceExchangeStep,
     nextStep: WorkflowStepDefinitionDto,
     nextStepId: string,
     baseUrl: string
@@ -66,9 +65,10 @@ export class WfExchangeEntity {
     // set the state to active
     this.state = ExchangeState.active;
     // Get current step
-    // const currentStep = this.getCurrentStep();
+    const currentStep = this.getCurrentStep();
     // Pass presentation to current step to process
     const { errors, verificationResult } = await currentStep.processPresentation(presentation, verifier);
+    this.updateCurrentStep(currentStep);
     // If step processing has errors, return errors
     if (errors.length > 0) {
       return {
@@ -114,6 +114,10 @@ export class WfExchangeEntity {
     } else {
       return plainToInstance(IssuanceExchangeStep, currentStep);
     }
+  }
+
+  private updateCurrentStep(step: QueryExchangeStep | IssuanceExchangeStep): void {
+    this.steps[this.steps.length - 1] = step;
   }
 
   /**

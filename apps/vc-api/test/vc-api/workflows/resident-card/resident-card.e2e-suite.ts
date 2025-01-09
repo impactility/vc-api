@@ -95,15 +95,14 @@ export const residentCardWorkflowSuite = () => {
       didAuthStepId
     );
 
-    
     // As the issuer, check the result of the step verification
 
     // TODO: revisit the isComplete test
     // expect(stepSubmission.step.isComplete).toBeTruthy();
-    
+
     if (stepSubmission.step.type === 'QueryExchangeStep') {
-      const queryExchaneStep = stepSubmission.step as QueryExchangeStep;
-      expect(queryExchaneStep.presentationSubmission?.verificationResult?.errors).toHaveLength(0);
+      const queryExchangeStep = stepSubmission.step as QueryExchangeStep;
+      expect(queryExchangeStep.presentationSubmission.verificationResult.errors).toHaveLength(0);
     }
     // expect(stepSubmission.stepResponse.verificationResult.verified).toBeTruthy();
 
