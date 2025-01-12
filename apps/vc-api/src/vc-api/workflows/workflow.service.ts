@@ -17,6 +17,8 @@ import { HttpService } from '@nestjs/axios';
 import { validate } from 'class-validator';
 import { ExchangeStepStateDto } from './dtos/exchange-step-state.dto';
 import { API_DEFAULT_VERSION_PREFIX } from '../../setup';
+import { SubmissionReviewDto } from './dtos/submission-review.dto';
+import { IssuanceExchangeStep } from './types/issuance-exchange-step';
 
 export class WorkflowService {
   private readonly logger = new Logger(WorkflowService.name, { timestamp: true });
@@ -192,5 +194,30 @@ export class WorkflowService {
       step: stepInfo,
       stepResponse: response
     };
+  }
+
+  public async addReview(
+    localWorkflowId: string,
+    localExchangeId: string,
+    localStepId: string,
+    reviewDto: SubmissionReviewDto) {
+    const exchange = await this.exchangeRepository.findOneBy({
+      workflowId: localWorkflowId,
+      exchangeId: localExchangeId
+    });
+    if (exchange == null) {
+      throw new NotFoundException(`workflowId='${localWorkflowId} -> 'exchangeId='${localExchangeId}' does not exist`);
+    }
+
+    const stepInfo = exchange.getStep(localStepId);
+
+    if (stepInfo instanceof IssuanceExchangeStep) {
+      stepInfo.addVP(reviewDto.vp);
+    } else {
+      throw new BadRequestException('Only Issuance exchange step is supported');
+    }
+    const id = exchange.steps.findIndex((step) => step.stepId === localStepId);
+    exchange.steps[id] = stepInfo;
+    await this.exchangeRepository.save(exchange);
   }
 }
