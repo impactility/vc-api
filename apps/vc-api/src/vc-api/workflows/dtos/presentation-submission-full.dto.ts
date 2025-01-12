@@ -27,5 +27,5 @@ export class PresentationSubmissionFullDto {
   @IsNotEmpty()
   @ValidateNested()
   @Type(() => VerifiablePresentationDto)
-  vp: VerifiablePresentationDto;
+  verifiablePresentation: VerifiablePresentationDto;
 }

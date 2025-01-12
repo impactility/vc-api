@@ -147,7 +147,7 @@ export const residentCardWorkflowSuite = () => {
     // As holder, start issuance exchange
     // POST /workflows/{localWorkflowId}/exchanges/{localExchangeId}
     const presentationExchangeEndpoint = getUrlPath(presentationExchangeId);
-    const presentationVpRequest = await walletClient.startExchange(
+    const presentationVpRequest = await walletClient.startWorkflowExchange(
       presentationExchangeEndpoint,
       presentationWorkflow.queryType
     );
@@ -174,7 +174,7 @@ export const residentCardWorkflowSuite = () => {
     const vp = await walletClient.provePresentation({ presentation, options: presentationOptions });
 
     // Holder submits presentation
-    await walletClient.continueWorkflowExchange(presentationExchangeContinuationEndpoint, vp, 'empty');
+    await walletClient.continueWorkflowExchange(presentationExchangeContinuationEndpoint, vp, 'redirect');
     presentationCallbackScope.done();
   });
 };
