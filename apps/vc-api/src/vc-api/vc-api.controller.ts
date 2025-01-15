@@ -514,4 +514,31 @@ export class VcApiController {
   ): Promise<ExchangeStepStateDto> {
     return this.workflowService.getExchangeStep(localWorkflowId, localExchangeId, localStepId);
   }
+
+  /**
+   * Add review for an exchange step
+   * 
+   * @param localWorkflowId
+   * @param localExchangeId
+   * @param localStepId
+   * @param submissionReview
+   */
+  @Post('/workflows/:localWorkflowId/exchanges/:localExchangeId/steps/:localStepId/review')
+  @ApiOperation({
+    description:
+      'Update an exchange step review\n' +
+      'A NON-STANDARD endpoint currently.\n'
+  })
+  @ApiBody({ type: SubmissionReviewDto })
+  @ApiCreatedResponse()
+  @ApiNotFoundResponse({ type: NotFoundErrorResponseDto })
+  @ApiNotFoundResponse({ type: BadRequestErrorResponseDto })
+  async addWorkflowStepReview(
+    @Param('localWorkflowId') localWorkflowId: string,
+    @Param('localExchangeId') localExchangeId: string,
+    @Param('localStepId') localStepId: string,
+    @Body() submissionReview: SubmissionReviewDto
+  ) {
+    await this.workflowService.addReview(localWorkflowId, localExchangeId, localStepId, submissionReview);
+  }
 }

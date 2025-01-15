@@ -840,6 +840,48 @@
         },
         "tags": ["vc-api"]
       }
+    },
+    "/v1/vc-api/workflows/{localWorkflowId}/exchanges/{localExchangeId}/steps/{localStepId}/review": {
+      "post": {
+        "operationId": "VcApiController_addWorkflowStepReview",
+        "summary": "",
+        "description": "Update an exchange step review\nA NON-STANDARD endpoint currently.\n",
+        "parameters": [
+          { "name": "localWorkflowId", "required": true, "in": "path", "schema": { "type": "string" } },
+          { "name": "localExchangeId", "required": true, "in": "path", "schema": { "type": "string" } },
+          { "name": "localStepId", "required": true, "in": "path", "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/SubmissionReviewDto" } }
+          }
+        },
+        "responses": {
+          "201": { "description": "" },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/BadRequestErrorResponseDto" } }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/NotFoundErrorResponseDto" } }
+            }
+          },
+          "500": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/InternalServerErrorResponseDto" }
+              }
+            }
+          }
+        },
+        "tags": ["vc-api"]
+      }
     }
   },
   "info": { "title": "VC-API", "description": "Sample VC-API", "version": "0.1", "contact": {} },
