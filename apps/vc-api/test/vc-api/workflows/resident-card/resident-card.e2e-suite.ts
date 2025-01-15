@@ -174,7 +174,7 @@ export const residentCardWorkflowSuite = () => {
     const vp = await walletClient.provePresentation({ presentation, options: presentationOptions });
 
     // Holder submits presentation
-    await walletClient.continueWorkflowExchange(presentationExchangeContinuationEndpoint, vp, 'redirect');
+    await walletClient.continueWorkflowExchange(presentationExchangeContinuationEndpoint, vp, 'redirectUrl');
     presentationCallbackScope.done();
   });
 };

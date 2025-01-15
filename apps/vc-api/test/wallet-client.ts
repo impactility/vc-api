@@ -29,7 +29,6 @@ const EXPECTED_RESPONSE_TYPE = {
   RedirectUrl: 'redirectUrl',
   VerifiablePresentation: 'verifiablePresentation',
   Empty: 'empty', // An empty response isn't clearly in the spec but there may be a use for it,
-  OnlyRedirect: 'redirect',
 } as const;
 type ExpectedResponseType = (typeof EXPECTED_RESPONSE_TYPE)[keyof typeof EXPECTED_RESPONSE_TYPE];
 
@@ -221,9 +220,6 @@ export class WalletClient {
         break;
       case EXPECTED_RESPONSE_TYPE.Empty:
         expect(JSON.stringify(body)).toEqual('{}');
-        break;
-      case EXPECTED_RESPONSE_TYPE.OnlyRedirect:
-        expect(body.redirectUrl).toBeDefined();
         break;
       default:
         // eslint-disable-next-line @typescript-eslint/no-unused-vars, no-case-declarations
