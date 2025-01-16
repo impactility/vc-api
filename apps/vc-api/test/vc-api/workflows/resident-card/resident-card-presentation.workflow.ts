@@ -11,7 +11,7 @@ import { VpRequestQueryType } from '../../../../src/vc-api/exchanges/types/vp-re
 export class ResidentCardPresentation {
   #workflowId = `b229a18f-db45-4b33-8d36-25d442467bab`;
   #callbackUrl: string;
-  queryType = VpRequestQueryType.didAuth;
+  queryType = VpRequestQueryType.presentationDefinition;
 
   constructor(callbackUrl: string) {
     this.#callbackUrl = callbackUrl;
