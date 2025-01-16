@@ -14,8 +14,9 @@ import {
 import { ResidentCardIssuance } from './resident-card-issuance.workflow';
 import { ResidentCardPresentation } from './resident-card-presentation.workflow';
 import { app, getContinuationEndpoint, getUrlPath, vcApiBaseUrl, walletClient } from '../../../app.e2e-spec';
-import { ProvePresentationOptionsDto } from 'src/vc-api/credentials/dtos/prove-presentation-options.dto';
-import { QueryExchangeStep } from 'src/vc-api/workflows/types/query-exchange-step';
+import { ProvePresentationOptionsDto } from '../../../../src/vc-api/credentials/dtos/prove-presentation-options.dto';
+import { QueryExchangeStep } from '../../../../src/vc-api/workflows/types/query-exchange-step';
+import { plainToInstance } from 'class-transformer';
 
 const callbackUrlBase = 'http://example.com';
 const callbackUrlPath = '/endpoint';
@@ -96,15 +97,11 @@ export const residentCardWorkflowSuite = () => {
     );
 
     // As the issuer, check the result of the step verification
-
-    // TODO: revisit the isComplete test
-    // expect(stepSubmission.step.isComplete).toBeTruthy();
-
-    if (stepSubmission.step.type === 'QueryExchangeStep') {
-      const queryExchangeStep = stepSubmission.step as QueryExchangeStep;
-      expect(queryExchangeStep.presentationSubmission.verificationResult.errors).toHaveLength(0);
-    }
-    // expect(stepSubmission.stepResponse.verificationResult.verified).toBeTruthy();
+    expect(stepSubmission.step.type).toEqual('QueryExchangeStep');
+    const queryExchangeStep = plainToInstance(QueryExchangeStep, stepSubmission.step);
+    expect(queryExchangeStep.isComplete).toBeTruthy();
+    expect(queryExchangeStep.presentationSubmission.verificationResult.errors).toHaveLength(0);
+    expect(queryExchangeStep.presentationSubmission.verificationResult.verified).toBeTruthy();
 
     // As the issuer, create a presentation to provide the credential to the holder
     const issueResult = await issuanceWorkflow.issueCredential(didAuthVp, walletClient);
