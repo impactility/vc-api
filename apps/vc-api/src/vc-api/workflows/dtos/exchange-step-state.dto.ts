@@ -5,7 +5,6 @@ import { QueryExchangeStep } from '../types/query-exchange-step';
 import { ExchangeResponseDto } from './exchange-response.dto';
 
 export class ExchangeStepStateDto {
-
   @IsString()
   @ApiProperty({
     description: 'Exchange Id'
@@ -17,17 +16,17 @@ export class ExchangeStepStateDto {
     description: 'Step Id'
   })
   stepId: string;
-  
+
   @IsObject()
   @ApiProperty({
     description: 'Exchange step information'
   })
-  step: IssuanceExchangeStep | QueryExchangeStep
+  step: IssuanceExchangeStep | QueryExchangeStep;
 
   @IsObject()
   @IsOptional()
   @ApiProperty({
     description: 'Exchange step information'
   })
-  stepResponse?: ExchangeResponseDto
+  stepResponse?: ExchangeResponseDto;
 }

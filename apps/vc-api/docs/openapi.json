@@ -350,6 +350,7 @@
         "operationId": "VcApiController_createExchange",
         "summary": "",
         "description": "Allows the creation of a new exchange by providing the credential query and interaction endpoints\nA NON-STANDARD endpoint currently.\n\nSimilar to https://gataca-io.github.io/vui-core/#/Presentations/post_api_v2_presentations",
+        "deprecated": true,
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -388,6 +389,7 @@
         "operationId": "VcApiController_initiateExchange",
         "summary": "",
         "description": "Initiates an exchange of information.\nhttps://w3c-ccg.github.io/vc-api/#initiate-exchange",
+        "deprecated": true,
         "parameters": [
           { "name": "exchangeId", "required": true, "in": "path", "schema": { "type": "string" } }
         ],
@@ -427,6 +429,7 @@
         "operationId": "VcApiController_continueExchangePut",
         "summary": "",
         "description": "Receives information related to an existing exchange.\nhttps://w3c-ccg.github.io/vc-api/#continue-exchange",
+        "deprecated": true,
         "parameters": [
           { "name": "exchangeId", "required": true, "in": "path", "schema": { "type": "string" } },
           { "name": "transactionId", "required": true, "in": "path", "schema": { "type": "string" } }
@@ -474,6 +477,7 @@
         "operationId": "VcApiController_continueExchangePost",
         "summary": "",
         "description": "Receives information related to an existing exchange.\nhttps://w3c-ccg.github.io/vc-api/#continue-exchange",
+        "deprecated": true,
         "parameters": [
           { "name": "exchangeId", "required": true, "in": "path", "schema": { "type": "string" } },
           { "name": "transactionId", "required": true, "in": "path", "schema": { "type": "string" } }
@@ -521,6 +525,7 @@
         "operationId": "VcApiController_getTransaction",
         "summary": "",
         "description": "Get exchange transaction by id\nA NON-STANDARD endpoint currently.\nSimilar to https://identitycache.energyweb.org/api/#/Claims/ClaimController_getByIssuerDid",
+        "deprecated": true,
         "parameters": [
           { "name": "exchangeId", "required": true, "in": "path", "schema": { "type": "string" } },
           { "name": "transactionId", "required": true, "in": "path", "schema": { "type": "string" } }
@@ -559,6 +564,7 @@
         "operationId": "VcApiController_addSubmissionReview",
         "summary": "",
         "description": "Update a transaction review\nA NON-STANDARD endpoint currently.\nSimilar to https://github.com/energywebfoundation/ssi-hub/blob/8b860e7cdae4e1b1aa75afeab8b9df7ab26befbb/src/modules/claim/claim.controller.ts#L80",
+        "deprecated": true,
         "parameters": [
           { "name": "exchangeId", "required": true, "in": "path", "schema": { "type": "string" } },
           { "name": "transactionId", "required": true, "in": "path", "schema": { "type": "string" } }

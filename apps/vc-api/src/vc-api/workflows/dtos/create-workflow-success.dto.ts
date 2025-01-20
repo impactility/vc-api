@@ -1,3 +1,3 @@
-import { CreateWorkflowRequestDto } from "./create-workflow-request.dto";
+import { CreateWorkflowRequestDto } from './create-workflow-request.dto';
 
 export class CreateWorkflowSuccessDto extends CreateWorkflowRequestDto {}

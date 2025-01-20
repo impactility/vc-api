@@ -79,7 +79,7 @@ export class VpSubmissionVerifierService implements SubmissionVerifier {
           return this.verifyVpRequestTypeDidAuth(presentation);
         case VpRequestQueryType.presentationDefinition:
           return this.verifyVpRequestTypePresentationDefinition(presentation, vpQuery.credentialQuery as any);
-          // TODO: cast to the correct type
+        // TODO: cast to the correct type
         default:
           return ['Unknown request query type'];
       }

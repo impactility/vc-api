@@ -200,13 +200,16 @@ export class WorkflowService {
     localWorkflowId: string,
     localExchangeId: string,
     localStepId: string,
-    reviewDto: SubmissionReviewDto) {
+    reviewDto: SubmissionReviewDto
+  ) {
     const exchange = await this.exchangeRepository.findOneBy({
       workflowId: localWorkflowId,
       exchangeId: localExchangeId
     });
     if (exchange == null) {
-      throw new NotFoundException(`workflowId='${localWorkflowId} -> 'exchangeId='${localExchangeId}' does not exist`);
+      throw new NotFoundException(
+        `workflowId='${localWorkflowId} -> 'exchangeId='${localExchangeId}' does not exist`
+      );
     }
 
     const stepInfo = exchange.getStep(localStepId);

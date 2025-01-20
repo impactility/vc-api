@@ -1,6 +1,6 @@
 export enum ExchangeState {
-    pending = 'pending',
-    active = 'active',
-    completed = 'completed',
-    invalid = 'invalid'
-};
+  pending = 'pending',
+  active = 'active',
+  completed = 'completed',
+  invalid = 'invalid'
+}

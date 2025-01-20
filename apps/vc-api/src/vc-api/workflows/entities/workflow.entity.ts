@@ -47,8 +47,8 @@ export class WorkflowEntity {
 
   /**
    * Get the next step from the current step definition
-   * 
-   * @param currentStep 
+   *
+   * @param currentStep
    * @returns the next step in the workflow
    */
   public getNextStep(currentStep: string): [WorkflowStepDefinitionDto, string] {

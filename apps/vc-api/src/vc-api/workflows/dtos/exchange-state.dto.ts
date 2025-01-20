@@ -3,7 +3,6 @@ import { ApiProperty } from '@nestjs/swagger';
 import { ExchangeState } from '../types/exchange-status';
 
 export class ExchangeStateDto {
-
   @IsString()
   @ApiProperty({
     description: 'Exchange Id'
@@ -15,7 +14,7 @@ export class ExchangeStateDto {
     description: 'Current step in the exchange'
   })
   step: string;
-  
+
   @IsString()
   @ApiProperty({
     description: 'Exchange status'

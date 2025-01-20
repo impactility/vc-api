@@ -248,7 +248,7 @@ export class VcApiController {
   @ApiBody({ type: VerifiablePresentationDto })
   @ApiOkResponse({
     description: 'Verifiable Presentation successfully submitted and verified',
-    type: ExchangeResponseDto,
+    type: ExchangeResponseDto
   })
   @ApiAcceptedResponse({
     description: 'Verifiable Presentation successfully submitted. Further review in progress.'
@@ -523,7 +523,7 @@ export class VcApiController {
 
   /**
    * Add review for an exchange step
-   * 
+   *
    * @param localWorkflowId
    * @param localExchangeId
    * @param localStepId
@@ -531,9 +531,7 @@ export class VcApiController {
    */
   @Post('/workflows/:localWorkflowId/exchanges/:localExchangeId/steps/:localStepId/review')
   @ApiOperation({
-    description:
-      'Update an exchange step review\n' +
-      'A NON-STANDARD endpoint currently.\n'
+    description: 'Update an exchange step review\n' + 'A NON-STANDARD endpoint currently.\n'
   })
   @ApiBody({ type: SubmissionReviewDto })
   @ApiCreatedResponse()
