@@ -217,7 +217,8 @@ export class VcApiController {
     description:
       'Allows the creation of a new exchange by providing the credential query and interaction endpoints\n' +
       'A NON-STANDARD endpoint currently.\n\n' +
-      'Similar to https://gataca-io.github.io/vui-core/#/Presentations/post_api_v2_presentations'
+      'Similar to https://gataca-io.github.io/vui-core/#/Presentations/post_api_v2_presentations',
+    deprecated: true
   })
   @ApiBody({ type: ExchangeDefinitionDto })
   @ApiCreatedResponse() // TODO: define response DTO
@@ -228,7 +229,8 @@ export class VcApiController {
 
   @Post('/exchanges/:exchangeId')
   @ApiOperation({
-    description: 'Initiates an exchange of information.\nhttps://w3c-ccg.github.io/vc-api/#initiate-exchange'
+    description: 'Initiates an exchange of information.\nhttps://w3c-ccg.github.io/vc-api/#initiate-exchange',
+    deprecated: true
   })
   @ApiCreatedResponse({ type: ExchangeResponseDto })
   @ApiNotFoundResponse({ type: NotFoundErrorResponseDto })
@@ -240,12 +242,13 @@ export class VcApiController {
   @ApiOperation({
     description:
       'Receives information related to an existing exchange.\n' +
-      'https://w3c-ccg.github.io/vc-api/#continue-exchange'
+      'https://w3c-ccg.github.io/vc-api/#continue-exchange',
+    deprecated: true
   })
   @ApiBody({ type: VerifiablePresentationDto })
   @ApiOkResponse({
     description: 'Verifiable Presentation successfully submitted and verified',
-    type: ExchangeResponseDto
+    type: ExchangeResponseDto,
   })
   @ApiAcceptedResponse({
     description: 'Verifiable Presentation successfully submitted. Further review in progress.'
@@ -266,7 +269,8 @@ export class VcApiController {
   @ApiOperation({
     description:
       'Receives information related to an existing exchange.\n' +
-      'https://w3c-ccg.github.io/vc-api/#continue-exchange'
+      'https://w3c-ccg.github.io/vc-api/#continue-exchange',
+    deprecated: true
   })
   @ApiBody({ type: VerifiablePresentationDto })
   @ApiOkResponse({
@@ -318,7 +322,8 @@ export class VcApiController {
     description:
       'Get exchange transaction by id\n' +
       'A NON-STANDARD endpoint currently.\n' +
-      'Similar to https://identitycache.energyweb.org/api/#/Claims/ClaimController_getByIssuerDid'
+      'Similar to https://identitycache.energyweb.org/api/#/Claims/ClaimController_getByIssuerDid',
+    deprecated: true
   })
   @ApiOkResponse({ type: TransactionDto })
   @ApiNotFoundResponse({ type: NotFoundErrorResponseDto })
@@ -351,7 +356,8 @@ export class VcApiController {
     description:
       'Update a transaction review\n' +
       'A NON-STANDARD endpoint currently.\n' +
-      'Similar to https://github.com/energywebfoundation/ssi-hub/blob/8b860e7cdae4e1b1aa75afeab8b9df7ab26befbb/src/modules/claim/claim.controller.ts#L80'
+      'Similar to https://github.com/energywebfoundation/ssi-hub/blob/8b860e7cdae4e1b1aa75afeab8b9df7ab26befbb/src/modules/claim/claim.controller.ts#L80',
+    deprecated: true
   })
   @ApiBody({ type: SubmissionReviewDto })
   // TODO: define response DTO
