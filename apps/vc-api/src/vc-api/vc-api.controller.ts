@@ -9,11 +9,13 @@ import {
   Controller,
   Get,
   HttpCode,
+  HttpStatus,
   Logger,
   NotFoundException,
   Param,
   Post,
   Put,
+  Req,
   Res
 } from '@nestjs/common';
 import {
@@ -30,7 +32,7 @@ import {
   ApiTags,
   getSchemaPath
 } from '@nestjs/swagger';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { CredentialsService } from './credentials/credentials.service';
 import { IssueCredentialDto } from './credentials/dtos/issue-credential.dto';
 import { VerifiableCredentialDto } from './credentials/dtos/verifiable-credential.dto';
@@ -51,6 +53,14 @@ import { NotFoundErrorResponseDto } from '../dtos/not-found-error-response.dto';
 import { InternalServerErrorResponseDto } from '../dtos/internal-server-error-response.dto';
 import { IPresentationDefinition } from '@sphereon/pex';
 import { AuthenticateDto } from './credentials/dtos/authenticate.dto';
+import { CreateWorkflowRequestDto } from './workflows/dtos/create-workflow-request.dto';
+import { WorkflowService } from './workflows/workflow.service';
+import { CreateWorkflowSuccessDto } from './workflows/dtos/create-workflow-success.dto';
+import { CreateExchangeSuccessDto } from './workflows/dtos/create-exchange-success.dto';
+import { ExchangeStateDto } from './workflows/dtos/exchange-state.dto';
+import { ExchangeResponseDto as WfExchangeResponseDto } from './workflows/dtos/exchange-response.dto';
+import { ParticipateInExchangeDto } from './workflows/dtos/participate-in-exchange.dto';
+import { ExchangeStepStateDto } from './workflows/dtos/exchange-step-state.dto';
 
 /**
  * VcApi API conforms to W3C vc-api
@@ -63,7 +73,11 @@ import { AuthenticateDto } from './credentials/dtos/authenticate.dto';
 export class VcApiController {
   private readonly logger = new Logger(VcApiController.name, { timestamp: true });
 
-  constructor(private vcApiService: CredentialsService, private exchangeService: ExchangeService) {}
+  constructor(
+    private vcApiService: CredentialsService,
+    private exchangeService: ExchangeService,
+    private workflowService: WorkflowService
+  ) {}
 
   /**
    * @param issueDto credential without a proof, and, proof options
@@ -203,7 +217,8 @@ export class VcApiController {
     description:
       'Allows the creation of a new exchange by providing the credential query and interaction endpoints\n' +
       'A NON-STANDARD endpoint currently.\n\n' +
-      'Similar to https://gataca-io.github.io/vui-core/#/Presentations/post_api_v2_presentations'
+      'Similar to https://gataca-io.github.io/vui-core/#/Presentations/post_api_v2_presentations',
+    deprecated: true
   })
   @ApiBody({ type: ExchangeDefinitionDto })
   @ApiCreatedResponse() // TODO: define response DTO
@@ -214,7 +229,8 @@ export class VcApiController {
 
   @Post('/exchanges/:exchangeId')
   @ApiOperation({
-    description: 'Initiates an exchange of information.\nhttps://w3c-ccg.github.io/vc-api/#initiate-exchange'
+    description: 'Initiates an exchange of information.\nhttps://w3c-ccg.github.io/vc-api/#initiate-exchange',
+    deprecated: true
   })
   @ApiCreatedResponse({ type: ExchangeResponseDto })
   @ApiNotFoundResponse({ type: NotFoundErrorResponseDto })
@@ -226,7 +242,8 @@ export class VcApiController {
   @ApiOperation({
     description:
       'Receives information related to an existing exchange.\n' +
-      'https://w3c-ccg.github.io/vc-api/#continue-exchange'
+      'https://w3c-ccg.github.io/vc-api/#continue-exchange',
+    deprecated: true
   })
   @ApiBody({ type: VerifiablePresentationDto })
   @ApiOkResponse({
@@ -252,7 +269,8 @@ export class VcApiController {
   @ApiOperation({
     description:
       'Receives information related to an existing exchange.\n' +
-      'https://w3c-ccg.github.io/vc-api/#continue-exchange'
+      'https://w3c-ccg.github.io/vc-api/#continue-exchange',
+    deprecated: true
   })
   @ApiBody({ type: VerifiablePresentationDto })
   @ApiOkResponse({
@@ -304,7 +322,8 @@ export class VcApiController {
     description:
       'Get exchange transaction by id\n' +
       'A NON-STANDARD endpoint currently.\n' +
-      'Similar to https://identitycache.energyweb.org/api/#/Claims/ClaimController_getByIssuerDid'
+      'Similar to https://identitycache.energyweb.org/api/#/Claims/ClaimController_getByIssuerDid',
+    deprecated: true
   })
   @ApiOkResponse({ type: TransactionDto })
   @ApiNotFoundResponse({ type: NotFoundErrorResponseDto })
@@ -337,7 +356,8 @@ export class VcApiController {
     description:
       'Update a transaction review\n' +
       'A NON-STANDARD endpoint currently.\n' +
-      'Similar to https://github.com/energywebfoundation/ssi-hub/blob/8b860e7cdae4e1b1aa75afeab8b9df7ab26befbb/src/modules/claim/claim.controller.ts#L80'
+      'Similar to https://github.com/energywebfoundation/ssi-hub/blob/8b860e7cdae4e1b1aa75afeab8b9df7ab26befbb/src/modules/claim/claim.controller.ts#L80',
+    deprecated: true
   })
   @ApiBody({ type: SubmissionReviewDto })
   // TODO: define response DTO
@@ -362,5 +382,167 @@ export class VcApiController {
     }
 
     return result;
+  }
+
+  /**
+   * Create a workflow
+   *
+   * @param createWorkflowRequestDto
+   * @returns
+   */
+  @Post('/workflows')
+  @ApiOperation({
+    description:
+      'Creates a new workflow and returns its information in the response body.\n' +
+      'See https://w3c-ccg.github.io/vc-api/#create-workflow'
+  })
+  @ApiBody({ type: CreateWorkflowRequestDto })
+  @ApiCreatedResponse({ type: CreateWorkflowSuccessDto })
+  @ApiConflictResponse({ type: ConflictErrorResponseDto })
+  async createWorkflow(
+    @Body() createWorkflowRequestDto: CreateWorkflowRequestDto
+  ): Promise<CreateWorkflowSuccessDto> {
+    return this.workflowService.createWorkflow(createWorkflowRequestDto);
+  }
+
+  /**
+   * Get workflow config object
+   *
+   * @param localWorkflowId
+   * @returns
+   */
+  @Get('/workflows/:localWorkflowId')
+  @ApiOperation({
+    description:
+      'Gets the configuration of an existing workflow and returns it in the response body.\n' +
+      'See https://w3c-ccg.github.io/vc-api/#get-workflow-configuration'
+  })
+  @ApiOkResponse({ type: CreateWorkflowSuccessDto })
+  @ApiConflictResponse({ type: NotFoundException })
+  async getWorkflow(@Param('localWorkflowId') localWorkflowId: string): Promise<CreateWorkflowSuccessDto> {
+    return this.workflowService.getWorkflow(localWorkflowId);
+  }
+
+  /**
+   * Create a new exchange from an existing workflow
+   *
+   * @param localWorkflowId
+   * @returns
+   */
+  @Post('/workflows/:localWorkflowId/exchanges')
+  @ApiOperation({
+    description:
+      'Creates a new exchange and returns exchangeId in the response body.\n' +
+      'See https://w3c-ccg.github.io/vc-api/#create-exchange'
+  })
+  @ApiBody({ type: CreateWorkflowRequestDto })
+  @ApiCreatedResponse({ type: CreateExchangeSuccessDto })
+  @ApiConflictResponse({ type: NotFoundException })
+  async createExchangeFromWorkflow(
+    @Param('localWorkflowId') localWorkflowId: string
+  ): Promise<CreateExchangeSuccessDto> {
+    return this.workflowService.createExchange(localWorkflowId);
+  }
+
+  /**
+   * Participate in a workflow exchange
+   */
+  @Post('/workflows/:localWorkflowId/exchanges/:localExchangeId')
+  @ApiOperation({
+    description:
+      'Participate in an exchange.\n' +
+      'Posting an empty body will start the exchange or return what the exchange is expecting to complete the next step.\n' +
+      'See https://w3c-ccg.github.io/vc-api/#participate-in-an-exchange'
+  })
+  @ApiBody({ type: ParticipateInExchangeDto })
+  @ApiOkResponse({
+    description: 'Exchange Progressed',
+    type: WfExchangeResponseDto
+  })
+  @HttpCode(HttpStatus.OK)
+  async participateInWorkflowExchange(
+    @Param('localWorkflowId') localWorkflowId: string,
+    @Param('localExchangeId') localExchangeId: string,
+    @Body() participateBody: ParticipateInExchangeDto,
+    @Req() req: Request
+  ): Promise<WfExchangeResponseDto> {
+    const fullUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
+    return this.workflowService.participateInExchange(
+      localWorkflowId,
+      localExchangeId,
+      fullUrl,
+      participateBody.verifiablePresentation
+    );
+  }
+
+  /**
+   * Get exchange state of a workflow
+   *
+   * @param localWorkflowId
+   * @param localExchangeId
+   * @returns
+   */
+  @Get('/workflows/:localWorkflowId/exchanges/:localExchangeId')
+  @ApiOperation({
+    description:
+      'Gets the state of an existing exchange and returns it in the response body..\n' +
+      'See https://w3c-ccg.github.io/vc-api/#get-exchange-state'
+  })
+  @ApiOkResponse({ type: ExchangeStateDto })
+  @ApiConflictResponse({ type: NotFoundException })
+  async getExchangeState(
+    @Param('localWorkflowId') localWorkflowId: string,
+    @Param('localExchangeId') localExchangeId: string
+  ): Promise<ExchangeStateDto> {
+    return this.workflowService.getExchangeState(localWorkflowId, localExchangeId);
+  }
+
+  /**
+   * Get exchange step state of a workflow
+   *
+   * @param localWorkflowId
+   * @param localExchangeId
+   * @param localStepId
+   * @returns
+   */
+  @Get('/workflows/:localWorkflowId/exchanges/:localExchangeId/steps/:localStepId')
+  @ApiOperation({
+    description:
+      'Gets the state of an existing exchange and returns it in the response body..\n' +
+      'See https://w3c-ccg.github.io/vc-api/#get-exchange-state'
+  })
+  @ApiOkResponse({ type: ExchangeStepStateDto })
+  @ApiConflictResponse({ type: NotFoundException })
+  async getExchangeStep(
+    @Param('localWorkflowId') localWorkflowId: string,
+    @Param('localExchangeId') localExchangeId: string,
+    @Param('localStepId') localStepId: string
+  ): Promise<ExchangeStepStateDto> {
+    return this.workflowService.getExchangeStep(localWorkflowId, localExchangeId, localStepId);
+  }
+
+  /**
+   * Add review for an exchange step
+   *
+   * @param localWorkflowId
+   * @param localExchangeId
+   * @param localStepId
+   * @param submissionReview
+   */
+  @Post('/workflows/:localWorkflowId/exchanges/:localExchangeId/steps/:localStepId/review')
+  @ApiOperation({
+    description: 'Update an exchange step review\n' + 'A NON-STANDARD endpoint currently.\n'
+  })
+  @ApiBody({ type: SubmissionReviewDto })
+  @ApiCreatedResponse()
+  @ApiNotFoundResponse({ type: NotFoundErrorResponseDto })
+  @ApiNotFoundResponse({ type: BadRequestErrorResponseDto })
+  async addWorkflowStepReview(
+    @Param('localWorkflowId') localWorkflowId: string,
+    @Param('localExchangeId') localExchangeId: string,
+    @Param('localStepId') localStepId: string,
+    @Body() submissionReview: SubmissionReviewDto
+  ) {
+    await this.workflowService.addReview(localWorkflowId, localExchangeId, localStepId, submissionReview);
   }
 }

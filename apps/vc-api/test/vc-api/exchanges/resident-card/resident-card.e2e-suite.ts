@@ -20,7 +20,7 @@ const callbackUrlBase = 'http://example.com';
 const callbackUrlPath = '/endpoint';
 const callbackUrl = `${callbackUrlBase}${callbackUrlPath}`;
 
-export const residentCardExchangeSuite = () => {
+export const residentCardLegacyExchangeSuite = () => {
   it('should support Resident Card issuance and presentation', async () => {
     // As issuer, configure credential issuance exchange
     // POST /exchanges
