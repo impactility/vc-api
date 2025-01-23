@@ -12,6 +12,7 @@ import { ProvePresentationDto } from '../src/vc-api/credentials/dtos/prove-prese
 import { VerifiablePresentationDto } from '../src/vc-api/credentials/dtos/verifiable-presentation.dto';
 import { VpRequestDto } from '../src/vc-api/exchanges/dtos/vp-request.dto';
 import { ExchangeResponseDto } from '../src/vc-api/exchanges/dtos/exchange-response.dto';
+import { ExchangeResponseDto as WfExchangeResponseDto } from '../src/vc-api/workflows/dtos/exchange-response.dto';
 import { VpRequestQueryType } from '../src/vc-api/exchanges/types/vp-request-query-type';
 import { TransactionDto } from '../src/vc-api/exchanges/dtos/transaction.dto';
 import { SubmissionReviewDto } from '../src/vc-api/exchanges/dtos/submission-review.dto';
@@ -20,6 +21,16 @@ import { PresentationDto } from '../src/vc-api/credentials/dtos/presentation.dto
 import { KeyPairDto } from '../src/key/dtos/key-pair.dto';
 import { KeyDescriptionDto } from 'src/key/dtos/key-description.dto';
 import { API_DEFAULT_VERSION_PREFIX } from '../src/setup';
+import { ExchangeStateDto } from 'src/vc-api/workflows/dtos/exchange-state.dto';
+import { ExchangeStepStateDto } from 'src/vc-api/workflows/dtos/exchange-step-state.dto';
+
+const EXPECTED_RESPONSE_TYPE = {
+  VpRequest: 'vpRequest',
+  RedirectUrl: 'redirectUrl',
+  VerifiablePresentation: 'verifiablePresentation',
+  Empty: 'empty' // An empty response isn't clearly in the spec but there may be a use for it,
+} as const;
+type ExpectedResponseType = (typeof EXPECTED_RESPONSE_TYPE)[keyof typeof EXPECTED_RESPONSE_TYPE];
 
 /**
  * A wallet client for e2e tests
@@ -155,6 +166,107 @@ export class WalletClient {
   ) {
     const continueExchangeResponse = await request(this.#app.getHttpServer())
       .post(`${API_DEFAULT_VERSION_PREFIX}/vc-api/exchanges/${exchangeId}/${transactionId}/review`)
+      .send(submissionReviewDto)
+      .expect(201);
+    return continueExchangeResponse?.body;
+  }
+
+  /**
+   * POST /workflows/{localWorkflowId}/exchanges/{localExchangeId}
+   */
+  async startWorkflowExchange(
+    exchangeEndpoint: string,
+    expectedQueryType: VpRequestQueryType
+  ): Promise<VpRequestDto> {
+    const startWorkflowResponse = await request(this.#app.getHttpServer()).post(exchangeEndpoint).expect(200);
+    const vpRequest = (startWorkflowResponse.body as WfExchangeResponseDto).verifiablePresentationRequest;
+    expect(vpRequest).toBeDefined();
+    const challenge = vpRequest.challenge;
+    expect(challenge).toBeDefined();
+    expect(vpRequest.query).toHaveLength(1);
+    expect(vpRequest.query[0].type).toEqual(expectedQueryType);
+    return vpRequest;
+  }
+
+  /**
+   * POST /workflows/{localWorkflowId}/exchanges/{localExchangeId}
+   * @param exchangeContinuationEndpoint
+   * @param vp
+   */
+  async continueWorkflowExchange(
+    exchangeContinuationEndpoint: string,
+    vp: VerifiablePresentationDto,
+    expectedResponse: ExpectedResponseType,
+    expectsProcessingInProgress = false
+  ) {
+    const continueExchangeResponse = await request(this.#app.getHttpServer())
+      .post(exchangeContinuationEndpoint)
+      .send({
+        verifiablePresentation: vp
+      })
+      .expect(expectsProcessingInProgress ? 202 : 200);
+
+    const body = continueExchangeResponse.body as WfExchangeResponseDto;
+
+    switch (expectedResponse) {
+      case EXPECTED_RESPONSE_TYPE.VpRequest:
+        expect(body.verifiablePresentationRequest).toBeDefined();
+        break;
+      case EXPECTED_RESPONSE_TYPE.RedirectUrl:
+        expect(body.redirectUrl).toBeDefined();
+        break;
+      case EXPECTED_RESPONSE_TYPE.VerifiablePresentation:
+        expect(body.verifiablePresentation).toBeDefined();
+        break;
+      case EXPECTED_RESPONSE_TYPE.Empty:
+        expect(JSON.stringify(body)).toEqual('{}');
+        break;
+      default:
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars, no-case-declarations
+        const _exhaustiveCheck: never = expectedResponse;
+        throw new Error(`Unexpected response type: ${expectedResponse}`);
+    }
+
+    return body;
+  }
+
+  /**
+   * GET /workflows/{localWorkflowId}/exchanges/{localExchangeId}
+   */
+  async getExchangeState(localWorkflowId: string, localExchangeId: string) {
+    const exchangeState = await request(this.#app.getHttpServer())
+      .get(`${API_DEFAULT_VERSION_PREFIX}/vc-api/workflows/${localWorkflowId}/exchanges/${localExchangeId}`)
+      .expect(200);
+
+    return exchangeState.body as ExchangeStateDto;
+  }
+
+  /**
+   * GET /workflows/{localWorkflowId}/exchanges/{localExchangeId}/steps/{step}
+   */
+  async getExchangeStepSubmission(localWorkflowId: string, localExchangeId: string, step: string) {
+    const exchangeParticipationResponse = await request(this.#app.getHttpServer())
+      .get(
+        `${API_DEFAULT_VERSION_PREFIX}/vc-api/workflows/${localWorkflowId}/exchanges/${localExchangeId}/steps/${step}`
+      )
+      .expect(200);
+
+    return exchangeParticipationResponse.body as ExchangeStepStateDto;
+  }
+
+  /**
+   * POST /workflows/{localWorkflowId}/exchanges/{localeExchangeId}/steps/{stepId}/review
+   */
+  async addStepSubmissionReview(
+    localWorkflowId: string,
+    localExchangeId: string,
+    step: string,
+    submissionReviewDto: SubmissionReviewDto
+  ) {
+    const continueExchangeResponse = await request(this.#app.getHttpServer())
+      .post(
+        `${API_DEFAULT_VERSION_PREFIX}/vc-api/workflows/${localWorkflowId}/exchanges/${localExchangeId}/steps/${step}/review`
+      )
       .send(submissionReviewDto)
       .expect(201);
     return continueExchangeResponse?.body;

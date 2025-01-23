@@ -350,6 +350,7 @@
         "operationId": "VcApiController_createExchange",
         "summary": "",
         "description": "Allows the creation of a new exchange by providing the credential query and interaction endpoints\nA NON-STANDARD endpoint currently.\n\nSimilar to https://gataca-io.github.io/vui-core/#/Presentations/post_api_v2_presentations",
+        "deprecated": true,
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -388,6 +389,7 @@
         "operationId": "VcApiController_initiateExchange",
         "summary": "",
         "description": "Initiates an exchange of information.\nhttps://w3c-ccg.github.io/vc-api/#initiate-exchange",
+        "deprecated": true,
         "parameters": [
           { "name": "exchangeId", "required": true, "in": "path", "schema": { "type": "string" } }
         ],
@@ -427,6 +429,7 @@
         "operationId": "VcApiController_continueExchangePut",
         "summary": "",
         "description": "Receives information related to an existing exchange.\nhttps://w3c-ccg.github.io/vc-api/#continue-exchange",
+        "deprecated": true,
         "parameters": [
           { "name": "exchangeId", "required": true, "in": "path", "schema": { "type": "string" } },
           { "name": "transactionId", "required": true, "in": "path", "schema": { "type": "string" } }
@@ -474,6 +477,7 @@
         "operationId": "VcApiController_continueExchangePost",
         "summary": "",
         "description": "Receives information related to an existing exchange.\nhttps://w3c-ccg.github.io/vc-api/#continue-exchange",
+        "deprecated": true,
         "parameters": [
           { "name": "exchangeId", "required": true, "in": "path", "schema": { "type": "string" } },
           { "name": "transactionId", "required": true, "in": "path", "schema": { "type": "string" } }
@@ -521,6 +525,7 @@
         "operationId": "VcApiController_getTransaction",
         "summary": "",
         "description": "Get exchange transaction by id\nA NON-STANDARD endpoint currently.\nSimilar to https://identitycache.energyweb.org/api/#/Claims/ClaimController_getByIssuerDid",
+        "deprecated": true,
         "parameters": [
           { "name": "exchangeId", "required": true, "in": "path", "schema": { "type": "string" } },
           { "name": "transactionId", "required": true, "in": "path", "schema": { "type": "string" } }
@@ -559,9 +564,298 @@
         "operationId": "VcApiController_addSubmissionReview",
         "summary": "",
         "description": "Update a transaction review\nA NON-STANDARD endpoint currently.\nSimilar to https://github.com/energywebfoundation/ssi-hub/blob/8b860e7cdae4e1b1aa75afeab8b9df7ab26befbb/src/modules/claim/claim.controller.ts#L80",
+        "deprecated": true,
         "parameters": [
           { "name": "exchangeId", "required": true, "in": "path", "schema": { "type": "string" } },
           { "name": "transactionId", "required": true, "in": "path", "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/SubmissionReviewDto" } }
+          }
+        },
+        "responses": {
+          "201": { "description": "" },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/BadRequestErrorResponseDto" } }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/NotFoundErrorResponseDto" } }
+            }
+          },
+          "500": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/InternalServerErrorResponseDto" }
+              }
+            }
+          }
+        },
+        "tags": ["vc-api"]
+      }
+    },
+    "/v1/vc-api/workflows": {
+      "post": {
+        "operationId": "VcApiController_createWorkflow",
+        "summary": "",
+        "description": "Creates a new workflow and returns its information in the response body.\nSee https://w3c-ccg.github.io/vc-api/#create-workflow",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/CreateWorkflowRequestDto" } }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/CreateWorkflowSuccessDto" } }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/BadRequestErrorResponseDto" } }
+            }
+          },
+          "409": {
+            "description": "",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ConflictErrorResponseDto" } }
+            }
+          },
+          "500": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/InternalServerErrorResponseDto" }
+              }
+            }
+          }
+        },
+        "tags": ["vc-api"]
+      }
+    },
+    "/v1/vc-api/workflows/{localWorkflowId}": {
+      "get": {
+        "operationId": "VcApiController_getWorkflow",
+        "summary": "",
+        "description": "Gets the configuration of an existing workflow and returns it in the response body.\nSee https://w3c-ccg.github.io/vc-api/#get-workflow-configuration",
+        "parameters": [
+          { "name": "localWorkflowId", "required": true, "in": "path", "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/CreateWorkflowSuccessDto" } }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/BadRequestErrorResponseDto" } }
+            }
+          },
+          "409": {
+            "description": "",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/NotFoundException" } }
+            }
+          },
+          "500": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/InternalServerErrorResponseDto" }
+              }
+            }
+          }
+        },
+        "tags": ["vc-api"]
+      }
+    },
+    "/v1/vc-api/workflows/{localWorkflowId}/exchanges": {
+      "post": {
+        "operationId": "VcApiController_createExchangeFromWorkflow",
+        "summary": "",
+        "description": "Creates a new exchange and returns exchangeId in the response body.\nSee https://w3c-ccg.github.io/vc-api/#create-exchange",
+        "parameters": [
+          { "name": "localWorkflowId", "required": true, "in": "path", "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/CreateWorkflowRequestDto" } }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/CreateExchangeSuccessDto" } }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/BadRequestErrorResponseDto" } }
+            }
+          },
+          "409": {
+            "description": "",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/NotFoundException" } }
+            }
+          },
+          "500": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/InternalServerErrorResponseDto" }
+              }
+            }
+          }
+        },
+        "tags": ["vc-api"]
+      }
+    },
+    "/v1/vc-api/workflows/{localWorkflowId}/exchanges/{localExchangeId}": {
+      "post": {
+        "operationId": "VcApiController_participateInWorkflowExchange",
+        "summary": "",
+        "description": "Participate in an exchange.\nPosting an empty body will start the exchange or return what the exchange is expecting to complete the next step.\nSee https://w3c-ccg.github.io/vc-api/#participate-in-an-exchange",
+        "parameters": [
+          { "name": "localWorkflowId", "required": true, "in": "path", "schema": { "type": "string" } },
+          { "name": "localExchangeId", "required": true, "in": "path", "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/ParticipateInExchangeDto" } }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Exchange Progressed",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ExchangeResponseDto" } }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/BadRequestErrorResponseDto" } }
+            }
+          },
+          "500": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/InternalServerErrorResponseDto" }
+              }
+            }
+          }
+        },
+        "tags": ["vc-api"]
+      },
+      "get": {
+        "operationId": "VcApiController_getExchangeState",
+        "summary": "",
+        "description": "Gets the state of an existing exchange and returns it in the response body..\nSee https://w3c-ccg.github.io/vc-api/#get-exchange-state",
+        "parameters": [
+          { "name": "localWorkflowId", "required": true, "in": "path", "schema": { "type": "string" } },
+          { "name": "localExchangeId", "required": true, "in": "path", "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ExchangeStateDto" } }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/BadRequestErrorResponseDto" } }
+            }
+          },
+          "409": {
+            "description": "",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/NotFoundException" } }
+            }
+          },
+          "500": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/InternalServerErrorResponseDto" }
+              }
+            }
+          }
+        },
+        "tags": ["vc-api"]
+      }
+    },
+    "/v1/vc-api/workflows/{localWorkflowId}/exchanges/{localExchangeId}/steps/{localStepId}": {
+      "get": {
+        "operationId": "VcApiController_getExchangeStep",
+        "summary": "",
+        "description": "Gets the state of an existing exchange and returns it in the response body..\nSee https://w3c-ccg.github.io/vc-api/#get-exchange-state",
+        "parameters": [
+          { "name": "localWorkflowId", "required": true, "in": "path", "schema": { "type": "string" } },
+          { "name": "localExchangeId", "required": true, "in": "path", "schema": { "type": "string" } },
+          { "name": "localStepId", "required": true, "in": "path", "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ExchangeStepStateDto" } }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/BadRequestErrorResponseDto" } }
+            }
+          },
+          "409": {
+            "description": "",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/NotFoundException" } }
+            }
+          },
+          "500": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/InternalServerErrorResponseDto" }
+              }
+            }
+          }
+        },
+        "tags": ["vc-api"]
+      }
+    },
+    "/v1/vc-api/workflows/{localWorkflowId}/exchanges/{localExchangeId}/steps/{localStepId}/review": {
+      "post": {
+        "operationId": "VcApiController_addWorkflowStepReview",
+        "summary": "",
+        "description": "Update an exchange step review\nA NON-STANDARD endpoint currently.\n",
+        "parameters": [
+          { "name": "localWorkflowId", "required": true, "in": "path", "schema": { "type": "string" } },
+          { "name": "localExchangeId", "required": true, "in": "path", "schema": { "type": "string" } },
+          { "name": "localStepId", "required": true, "in": "path", "schema": { "type": "string" } }
         ],
         "requestBody": {
           "required": true,
@@ -1122,20 +1416,20 @@
       "ExchangeResponseDto": {
         "type": "object",
         "properties": {
-          "vpRequest": {
+          "verifiablePresentationRequest": {
             "description": "Verifiable Presentation Request.\nShould conform to VP-Request specification.\nWill be returned if a VP is required to obtain more information from requester\nMay not be returned if no further information is required (for example, at the end of the workflow)",
             "allOf": [{ "$ref": "#/components/schemas/VpRequestDto" }]
           },
-          "vp": {
+          "verifiablePresentation": {
             "description": "If it is an issuance response, then a vp may be provided",
             "allOf": [{ "$ref": "#/components/schemas/VerifiablePresentationDto" }]
           },
-          "processingInProgress": {
-            "type": "boolean",
-            "description": "True if an exchange submission is currently being processed or reviewed asyncronously"
+          "redirectUrl": {
+            "type": "string",
+            "description": "The URL the exchange wishes to redirect the client to."
           }
         },
-        "required": ["processingInProgress"]
+        "required": ["redirectUrl"]
       },
       "PresentationSubmissionSecureDto": { "type": "object", "properties": {} },
       "TransactionDto": {
@@ -1172,6 +1466,87 @@
           }
         },
         "required": ["result"]
+      },
+      "StepDefinitions": { "type": "object", "properties": {} },
+      "WorkflowConfigDto": {
+        "type": "object",
+        "properties": {
+          "steps": {
+            "description": "One or more steps required to complete an exchange on the workflow.",
+            "allOf": [{ "$ref": "#/components/schemas/StepDefinitions" }]
+          },
+          "initialStep": { "type": "string", "description": "The initial step of the workflow." },
+          "id": {
+            "type": "string",
+            "description": "The ID that will be used for the created workflow. Passing an ID is OPTIONAL."
+          }
+        },
+        "required": ["steps", "initialStep", "id"]
+      },
+      "CreateWorkflowRequestDto": {
+        "type": "object",
+        "properties": {
+          "config": {
+            "description": "Configuration for a workflow",
+            "allOf": [{ "$ref": "#/components/schemas/WorkflowConfigDto" }]
+          }
+        },
+        "required": ["config"]
+      },
+      "CreateWorkflowSuccessDto": {
+        "type": "object",
+        "properties": {
+          "config": {
+            "description": "Configuration for a workflow",
+            "allOf": [{ "$ref": "#/components/schemas/WorkflowConfigDto" }]
+          }
+        },
+        "required": ["config"]
+      },
+      "NotFoundException": { "type": "object", "properties": {} },
+      "CreateExchangeSuccessDto": {
+        "type": "object",
+        "properties": {
+          "exchangeId": { "type": "string", "description": "The URL that uniquely identifies the exchange." },
+          "step": { "type": "string", "description": "The semantic string ID for the current step." },
+          "state": { "type": "string", "description": "Status of current exchange step" }
+        },
+        "required": ["exchangeId", "step", "state"]
+      },
+      "ParticipateInExchangeDto": {
+        "type": "object",
+        "properties": {
+          "verifiablePresentationRequest": {
+            "description": "Verifiable Presentation Request.\nShould conform to VP Request specification.",
+            "allOf": [{ "$ref": "#/components/schemas/VpRequestDto" }]
+          },
+          "verifiablePresentation": {
+            "description": "A JSON-LD Verifiable Presentation with a proof.",
+            "allOf": [{ "$ref": "#/components/schemas/VerifiablePresentationDto" }]
+          }
+        }
+      },
+      "ExchangeStateDto": {
+        "type": "object",
+        "properties": {
+          "exchangeId": { "type": "string", "description": "Exchange Id" },
+          "step": { "type": "string", "description": "Current step in the exchange" },
+          "state": { "type": "string", "description": "Exchange status" }
+        },
+        "required": ["exchangeId", "step", "state"]
+      },
+      "ExchangeStepStateDto": {
+        "type": "object",
+        "properties": {
+          "exchangeId": { "type": "string", "description": "Exchange Id" },
+          "stepId": { "type": "string", "description": "Step Id" },
+          "step": { "type": "object", "description": "Exchange step information" },
+          "stepResponse": {
+            "description": "Exchange step information",
+            "allOf": [{ "$ref": "#/components/schemas/ExchangeResponseDto" }]
+          }
+        },
+        "required": ["exchangeId", "stepId", "step", "stepResponse"]
       }
     }
   }
